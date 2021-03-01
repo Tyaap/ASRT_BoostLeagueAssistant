@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASRT_BoostLeagueAssistant
 {
@@ -20,11 +16,10 @@ namespace ASRT_BoostLeagueAssistant
         public ulong SteamID;
         public Character Character;
         public Completion Completion;
-        public float Score;
+        public double Score;
         public int Position;
-        public float Points;
+        public double Points;
         public bool UsedExploit;
-
 
         public string ScoreString()
         {
@@ -41,7 +36,7 @@ namespace ASRT_BoostLeagueAssistant
                 }
                 else if (Score <= 100 && Score >= 0)
                 {
-                    s = TruncatedFloatString(Score, 1) + "% (DNF)";
+                    s = TruncatedDecimalString(Score, 1) + "% (DNF)";
                 }
                 else
                 {
@@ -59,21 +54,79 @@ namespace ASRT_BoostLeagueAssistant
             return s;
         }
 
-        public static string TruncatedFloatString(float n, int decimals)
+        public static string TruncatedDecimalString(double n, int dp)
         {
             string num = n.ToString();
-            int dp = num.IndexOf('.');
-            if (dp == -1)
+            int point = num.IndexOf('.');
+            if (point == -1 || point + dp + 1 > num.Length)
             {
                 return num;
             }
-            else if (decimals == 0)
+            else if (dp == 0)
             {
-                return num.Substring(0, dp);
+                return num.Substring(0, point);
             }
             else
             {
-                return num.Substring(0, dp + decimals + 1);
+                return num.Substring(0, point + dp + 1).TrimEnd('0').TrimEnd('.');
+            }
+        }
+
+        public static int ComparePoints(Record x, Record y)
+        {
+            return x.Points != y.Points ? y.Points.CompareTo(x.Points) : CompareScores(x, y);
+        }
+
+        public static int CompareScores(Record x, Record y)
+        {
+            if (x.EventType != y.EventType || x.Map != y.Map)
+            {
+                return 0; // Cannot compare records from different maps/events
+            }
+
+            if (x.EventType == EventType.BattleArena || x.EventType == EventType.CaptureTheChao)
+            {
+                return y.Score.CompareTo(x.Score);
+            }
+            else if (x.EventType == EventType.BattleRace)
+            {
+                if (x.Completion == Completion.Eliminated && (y.Completion == Completion.DNF || y.Completion == Completion.Finished)
+                    || x.Completion == Completion.DNF && y.Completion == Completion.Finished)
+                {
+                    return 1;
+                }
+                else if (y.Completion == Completion.Eliminated && (x.Completion == Completion.DNF || x.Completion == Completion.Finished)
+                    || y.Completion == Completion.DNF && x.Completion == Completion.Finished)
+                {
+                    return -1;
+                }
+                else if (x.Completion == Completion.Finished) // x and y both finished
+                {
+                    return x.Score.CompareTo(y.Score);
+                }
+                else // x and y both DNF or eliminated
+                {
+                    return y.Score.CompareTo(x.Score);
+                }
+            }
+            else // Boost or normal race
+            {
+                if (x.Completion == Completion.DNF && y.Completion == Completion.Finished)
+                {
+                    return 1;
+                }
+                else if (y.Completion == Completion.DNF && x.Completion == Completion.Finished)
+                {
+                    return -1;
+                }
+                else if (x.Completion == Completion.Finished) // x and y both finished
+                {
+                    return x.Score.CompareTo(y.Score);
+                }
+                else // x and y both DNF
+                {
+                    return y.Score.CompareTo(x.Score); // compare DNF percentages
+                }
             }
         }
     }

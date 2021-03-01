@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace ASRT_BoostLeagueAssistant
 {
@@ -18,7 +17,7 @@ namespace ASRT_BoostLeagueAssistant
                         break;
                     }
                 }
-                rec.Points = 10 - 9 * (float)(n - 1) / (compRecs.Count - 1);
+                rec.Points = 10 - 9 * (double)(n - 1) / (compRecs.Count - 1);
             }
             else
             {
@@ -35,7 +34,7 @@ namespace ASRT_BoostLeagueAssistant
             {
                 List<Record> group = groupData[key];
                 List<Record> integral = integralData[key];
-                integral.Sort((x, y) => x.Score.CompareTo(y.Score));
+                integral.Sort((x, y) => x.Score.CompareTo(y.Score)); // order times from smallest to largest
                 foreach(Record rec in group)
                 {
                     CalculatePoints(rec, integral);

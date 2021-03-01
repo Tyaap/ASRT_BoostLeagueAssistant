@@ -8,15 +8,17 @@ namespace ASRT_BoostLeagueAssistant
 {
     public class DataReader
     {
-        public static List<Record> ReadLogs(string path)
+        public static (List<Record>, List<(int, int)>) ReadLogs(string path)
         {
             Dictionary<(int, string), int> roa = ReadRoA(path + "\\RoA.txt");
             Dictionary<ulong, string> names = ReadPlayersBySteamID(path + "\\Names.txt");
             List<Record> allData = new List<Record>();
+            List<(int, int)> counts = new List<(int, int)>();
             int year = 2020;
             int matchday = 1;
             while (Directory.Exists(path + "\\" + year))
             {
+                int count = 0;
                 while (Directory.Exists(path + "\\" + year + "\\MD#" + matchday))
                 {
                     string[] lobbyDirs = Directory.GetDirectories(path + "\\" + year + "\\MD#" + matchday, "Lobby*");
@@ -38,15 +40,17 @@ namespace ASRT_BoostLeagueAssistant
                         ReadLog(logFiles[0], year, matchday, lobbyName, players, names, roaPlaneLaps, allData);
                     }
                     matchday++;
+                    count++;
                 }
-                year++;
+                counts.Add((year, count));
+                year++;       
             }
             int i = 0;
             foreach(Record r in allData)
             {
                 r.Index = i++;
             }
-            return allData;
+            return (allData, counts);
         }
 
         public static Dictionary<string,ulong> ReadPlayersByName(string path)
@@ -127,7 +131,7 @@ namespace ASRT_BoostLeagueAssistant
                     {
                         // Found a new result
                         int position = StringToPosition(elements[0], fileName);
-                        float score;
+                        double score;
                         Completion completion;
                         bool usedExploit = false;
                         string scoreStr = elements[2];
@@ -143,7 +147,7 @@ namespace ASRT_BoostLeagueAssistant
                         }
                         else if (scoreStr == "DNF")
                         {
-                            score = float.MaxValue;
+                            score = double.MaxValue;
                             completion = Completion.DNF;
                         }
                         else if (scoreStr.Contains('%'))
@@ -157,7 +161,7 @@ namespace ASRT_BoostLeagueAssistant
                             completion = Completion.Finished;
                         }
                         Character character = StringToCharacter(elements[3], fileName);
-                        float points = nElements >= 5 ? StringToPoints(elements[4], fileName) : 0;
+                        double points = nElements >= 5 ? StringToPoints(elements[4], fileName) : 0;
                         string name = elements[1];
                         if (players == null || !players.TryGetValue(name, out ulong steamId))
                         {
@@ -273,13 +277,13 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static float StringToTime(string s, string sessionName = "Session Log")
+        public static double StringToTime(string s, string sessionName = "Session Log")
         {
             try
             {
                 string[] timeParts = s.Split(':');
                 int minutes = int.Parse(timeParts[0]);
-                float seconds = float.Parse(timeParts[1]);
+                double seconds = double.Parse(timeParts[1]);
                 if (seconds > 60 || minutes > 60)
                 {
                     /*
@@ -306,11 +310,11 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static float StringToDNFPercent(string s, string sessionName = "Session Log")
+        public static double StringToDNFPercent(string s, string sessionName = "Session Log")
         {
             try
             {
-                float percent = Math.Min(100f, float.Parse(s.Split('%')[0]));
+                double percent = Math.Min(100f, double.Parse(s.Split('%')[0]));
                 if (percent < 0 || percent > 100)
                 {
                     /*
@@ -336,11 +340,11 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static float StringToGeneralScore(string s, string sessionName = "Session Log")
+        public static double StringToGeneralScore(string s, string sessionName = "Session Log")
         {
             try
             {
-                return float.Parse(s);
+                return double.Parse(s);
             }
             catch
             {
@@ -377,11 +381,11 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static float StringToPoints(string s, string sessionName = "Session Log")
+        public static double StringToPoints(string s, string sessionName = "Session Log")
         {
             try
             {
-                return float.Parse(s);
+                return double.Parse(s);
             }
             catch
             {

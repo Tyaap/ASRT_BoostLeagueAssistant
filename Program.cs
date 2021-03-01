@@ -16,27 +16,45 @@ namespace ASRT_BoostLeagueAssistant
             //Application.SetHighDpiMode(HighDpiMode.SystemAware);
             //Application.EnableVisualStyles();
             //Application.SetCompatibleTextRenderingDefault(false);
+
+            // Load data
             string root = "C:\\Users\\TomAlex\\Desktop\\Boost League";
-            List<Record> data = DataReader.ReadLogs(root);
-            int nMatchdays = data.Last().MatchDay;
+            (List<Record> data, List<(int, int)> counts) = DataReader.ReadLogs(root);
             PointSystem.CalculatePoints(data);
-            Dictionary<(int, Map), List<Record>> matchdayMapToResults = MatchdayResults.MatchdayMapToResults(data);    
-            for (int i = 1; i <= nMatchdays; i++)
+
+            // Create results
+            int nMatchdays = data.Last().MatchDay;
+            List<Dictionary<ulong, PlayerSummary>> matchdaySummaries = new List<Dictionary<ulong, PlayerSummary>>(); // Summaries for the current year
+            Dictionary<(int, Map), List<Record>> matchdayMapToResults = MatchdayResults.MatchdayMapToResults(data);
+            int matchday = 0;
+            foreach ((int, int) count in counts)
             {
-                List<List<Record>> results = MatchdayResults.GetOrderedMatchdayResults(i, matchdayMapToResults);
-                List<PlayerSummary> summary = MatchdayResults.GetBreakdown(results);
-                Table details = MatchdayResults.MakeDetailsTable(results, 4);
-                Table summaryPoints = MatchdayResults.MakeSummaryTable(summary, usePoints: true);
-                Table summaryPositions = MatchdayResults.MakeSummaryTable(summary, usePoints: false);
-                string resultsDir = root + "\\" + MatchdayResults.GetMatchdayYear(i, results) + "\\MD#" + i + "\\Results";
-                if (!Directory.Exists(resultsDir))
+                for (int i = 0; i < count.Item2; i++)
                 {
-                    Directory.CreateDirectory(resultsDir);
+                    List<List<Record>> results = MatchdayResults.GetOrderedMatchdayResults(++matchday, matchdayMapToResults);
+
+                    // Matchday results
+                    Dictionary<ulong, PlayerSummary> matchdaySummary = MatchdayResults.SingleMatchdaySummary(results);
+                    matchdaySummaries.Add(matchdaySummary);
+                    Table details = MatchdayResults.MakeDetailsTable(results, 4);
+                    Table summaryPoints = MatchdayResults.MakeSummaryTable(matchdaySummary, usePoints: true);
+                    Table summaryPositions = MatchdayResults.MakeSummaryTable(matchdaySummary, usePoints: false);
+
+                    string matchdayDir = root + "\\" + count.Item1 + "\\MD#" + matchday;
+                    details.ToFile(matchdayDir + "\\MD#" + matchday + "_Details.txt");
+                    summaryPoints.ToFile(matchdayDir + "\\MD#" + matchday + "_Summary_Points.txt");
+                    summaryPositions.ToFile(matchdayDir + "\\MD#" + matchday + "_Summary_Positions.txt");
                 }
-                
-                details.ToFile(resultsDir + "\\MD#" + i + "_Details.txt");
-                summaryPoints.ToFile(resultsDir + "\\MD#" + i + "_Summary_Points.txt");
-                summaryPositions.ToFile(resultsDir + "\\MD#" + i + "_Summary_Positions.txt");       
+
+                // Yearly results
+                Dictionary<ulong, PlayerSummary> yearSummary = MatchdayResults.MultiMatchdaySummary(matchdaySummaries, calculateOldRanks: matchday == nMatchdays);
+                matchdaySummaries.Clear();
+                Table yearSummaryPoints = MatchdayResults.MakeSummaryTable(yearSummary, singleMatchday: false, summaryName: count.Item1 + " LEADERBOARD", usePoints: true);
+                Table yearSummaryPositions = MatchdayResults.MakeSummaryTable(yearSummary, singleMatchday: false, summaryName: count.Item1 + " LEADERBOARD", usePoints: false);
+
+                string yearDir = root + "\\" + count.Item1;
+                yearSummaryPoints.ToFile(yearDir + "\\" + count.Item1 + "_Summary_Points.txt");
+                yearSummaryPositions.ToFile(yearDir + "\\" + count.Item1 + "_Summary_Positions.txt");
             }
         }
     }
