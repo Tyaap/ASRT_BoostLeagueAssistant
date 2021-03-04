@@ -1,0 +1,275 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ASRT_BoostLeagueAssistant.Results
+{
+    public class Summary
+    {
+        static readonly string[] summaryHeadingsPoints = { "10", "10>x≥9", "9>x≥8", "8>x≥7", "7>x≥6", "6>x≥5", "5>x≥4", "4>x≥3", "3>x≥2", "2>x≥1" };
+
+        public static Dictionary<ulong, PlayerSummary> SingleMatchdaySummary(IEnumerable<Dictionary<ulong, Record>> results)
+        {
+            Dictionary<ulong, PlayerSummary> summary = new Dictionary<ulong, PlayerSummary>();
+            int nEvents = results.Count();
+            int i = 0;
+            foreach (Dictionary<ulong, Record> eventResults in results)
+            {
+                foreach (Record rec in eventResults.Values)
+                {
+                    if (!summary.TryGetValue(rec.SteamID, out PlayerSummary playerSummary))
+                    {
+                        playerSummary = new PlayerSummary()
+                        {
+                            name = rec.Name,
+                            points = new double[nEvents],
+                            positions = new int[nEvents]
+                        };
+                        summary[rec.SteamID] = playerSummary;
+                    }
+                    playerSummary.points[i] = rec.Points;
+                    playerSummary.positions[i] = rec.Position;
+                    playerSummary.totalPoints += rec.Points;
+                    playerSummary.totalPositions += rec.Position;
+                    playerSummary.nTracks++;
+                }
+                i++;
+            }
+            // Calculate rankings
+            CalculateSummaryRanks(summary);
+            return summary;
+        }
+
+        public static void AddMatchdaySummary(Dictionary<ulong, PlayerSummary> mmdSummary, Dictionary<ulong, PlayerSummary> mdSummary, int nPositions = 20, int nWins = 10, bool calcOldRanks = false, bool calcNewRanks = false)
+        {
+            if (calcOldRanks)
+            {
+                CalculateSummaryRanks(mmdSummary);
+            }
+            foreach (var pair in mdSummary)
+            {
+                if (!mmdSummary.TryGetValue(pair.Key, out PlayerSummary playerSummary))
+                {
+                    playerSummary = new PlayerSummary()
+                    {
+                        name = pair.Value.name,
+                        points = new double[10],
+                        positions = new int[nPositions],
+                        wins = new int[nWins],
+                    };
+                    mmdSummary[pair.Key] = playerSummary;
+                }
+                foreach (int position in pair.Value.positions)
+                {
+                    if (position >= 1 && position <= nPositions)
+                    {
+                        playerSummary.positions[position - 1]++;
+                    }
+                }
+                foreach (double points in pair.Value.points)
+                {
+                    if (points > 0)
+                    {
+                        playerSummary.points[10 - (int)points]++;
+                    }
+                }
+                playerSummary.totalPoints += pair.Value.totalPoints;
+                playerSummary.totalPositions += pair.Value.totalPositions;
+                playerSummary.nTracks += pair.Value.nTracks;
+                if (pair.Value.rank <= nWins)
+                {
+                    playerSummary.wins[pair.Value.rank - 1]++;
+                }
+                playerSummary.parts++;
+                if (calcOldRanks)
+                {
+                    playerSummary.oldRank = playerSummary.rank;
+                }
+            }
+            if (calcNewRanks)
+            {
+                CalculateSummaryRanks(mmdSummary);
+            }
+        }
+
+
+        public static void CalculateSummaryRanks(Dictionary<ulong, PlayerSummary> summary)
+        {
+            List<PlayerSummary> summaryList = new List<PlayerSummary>(summary.Values);
+            summaryList.Sort(PlayerSummary.Compare);
+            int nPlayers = summaryList.Count;
+            for (int i = 0; i < nPlayers; i++)
+            {
+                summaryList[i].rank = i + 1;
+            }
+        }
+
+        public static Table MakeSummaryTable(Dictionary<ulong, PlayerSummary> summary, string summaryName = "RESULTS",
+            IEnumerable<string> headings = null, bool frequencyData = false, bool usePoints = true)
+        {
+
+            Table table = new Table();
+            if (!summary.Any())
+            {
+                return table;
+            }
+            PlayerSummary firstSummary = summary.First().Value;
+            bool hasTotalPoints = firstSummary.totalPoints > 0;
+            bool hasTracks = firstSummary.nTracks > 0;
+            bool hasParts = firstSummary.parts > 0;
+            bool hasWins = firstSummary.wins != null && firstSummary.wins.Length > 0;
+            bool hasPoints = firstSummary.points != null && firstSummary.points.Length > 0;
+            bool hasPositions = firstSummary.positions != null && firstSummary.positions.Length > 0;
+            bool hasOldRanks = false;
+            foreach (PlayerSummary playerSummary in summary.Values)
+            {
+                if (playerSummary.oldRank != 0)
+                {
+                    hasOldRanks = true;
+                    break;
+                }
+            }
+
+
+            // Headings
+            int r = 0;
+            int c = 1;
+            if (hasOldRanks)
+            {
+                c++;
+            }
+            table[r, c++] = summaryName;
+            if (headings == null && frequencyData && usePoints)
+            {
+                // By default use point ranges
+                headings = summaryHeadingsPoints;
+            }
+            if ((hasPoints && usePoints) || (hasPositions && !usePoints))
+            {
+                if (headings != null)
+                {
+                    foreach (string heading in headings)
+                    {
+                        table[r, c++] = heading;
+                    }
+                }
+                else if (frequencyData)
+                {
+                    // By default use positions (maximum given in the summary)
+                    int nPositions = firstSummary.positions.Length;
+                    for (int i = 0; i < nPositions; i++)
+                    {
+                        table[r, c++] = (i + 1) + "°";
+                    }
+                }
+                else
+                {
+                    // By default use the acronyms for all 21 tracks
+                    foreach (Map map in Indexing.mapOrder)
+                    {
+                        table[r, c++] = ((MapAcronym)(uint)map).ToString();
+                    }
+                }
+                c++;
+            }
+            if (hasTotalPoints)
+            {
+                table[r, c++] = "PTS";
+            }
+            if (hasTracks)
+            {
+                table[r, c++] = "Tracks";
+            }
+            if (hasTotalPoints && hasTracks)
+            {
+                table[r, c++] = "AVERAGE";
+            }
+
+            if (hasParts)
+            {
+                table[r, c++] = "PARTS";
+            }
+            if (hasWins)
+            {
+                int nWins = firstSummary.wins.Length;
+                for (int i = 0; i < nWins; i++)
+                {
+                    table[r, c++] = (i + 1) + "°";
+                }
+            }
+
+            // Data
+            foreach (PlayerSummary playerSummary in summary.Values)
+            {
+                r = playerSummary.rank;
+                c = 0;
+                string rank = 
+                table[r, c++] = playerSummary.rank + "°";
+                if (playerSummary.oldRank != 0)
+                {
+                    table[r, c++] = Details.DeltaIndicator(playerSummary.oldRank, playerSummary.rank, inverseArrow: true);
+                }
+                else if (hasOldRanks)
+                {
+                    c++;
+                }
+                table[r, c++] = playerSummary.name;
+                if (usePoints && hasPoints)
+                {
+                    foreach (double points in playerSummary.points)
+                    {
+                        if (points != 0)
+                        {
+                            table[r, c] = Record.TruncatedDecimalString(points, 3);
+                        }
+                        c++;
+                    }
+                    c++;
+                }
+                if (!usePoints && hasPositions)
+                {
+                    foreach (int position in playerSummary.positions)
+                    {
+                        if (position != 0)
+                        {
+                            table[r, c] = position.ToString();
+                        }
+                        c++;
+                    }
+                    c++;
+                }
+                if (hasTotalPoints)
+                {
+                    table[r, c++] = Record.TruncatedDecimalString(playerSummary.totalPoints, 3);
+                }
+                if (hasTracks)
+                {
+                    table[r, c++] = playerSummary.nTracks.ToString();
+                }
+                if (hasTotalPoints && hasTracks)
+                {
+                    table[r, c++] = Record.TruncatedDecimalString((playerSummary.totalPoints / playerSummary.nTracks * 10), 3);
+                }
+                if (hasParts)
+                {
+                    table[r, c++] = playerSummary.parts.ToString();
+                }
+                if (hasWins)
+                {
+                    foreach (int win in playerSummary.wins)
+                    {
+                        if (win != 0)
+                        {
+                            table[r, c] = win.ToString();
+                        }
+                        c++;
+                    }
+                }
+            }
+
+            return table;
+        }
+    }
+}

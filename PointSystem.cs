@@ -27,17 +27,20 @@ namespace ASRT_BoostLeagueAssistant
 
         public static void CalculatePoints(List<Record> data)
         {
-            Dictionary<(int, Map), List<Record>> groupData = Indexing.MatchdayMapToRecords(data);
-            Dictionary<(int, Map), List<Record>> integralData = Indexing.MatchdayMapToIntegral(data);
+            Dictionary<int, Dictionary<Map, List<Record>>> mdGroups = Indexing.MdToMapToRecords(data, onlyValidTimes: false);
+            Dictionary<int, Dictionary<Map, List<Record>>> mdIntegral = Indexing.MdToMapToMdIntegral(data, onlyValidTimes: true);
 
-            foreach(var key in groupData.Keys)
+            foreach(int matchday in mdGroups.Keys)
             {
-                List<Record> group = groupData[key];
-                List<Record> integral = integralData[key];
-                integral.Sort((x, y) => x.Score.CompareTo(y.Score)); // order times from smallest to largest
-                foreach(Record rec in group)
+                foreach(Map map in mdGroups[matchday].Keys)
                 {
-                    CalculatePoints(rec, integral);
+                    List<Record> mapResults = mdGroups[matchday][map];
+                    List<Record> integral = mdIntegral[matchday][map];
+                    integral.Sort((x, y) => x.Score.CompareTo(y.Score)); // order times from smallest to largest
+                    foreach (Record rec in mapResults)
+                    {
+                        CalculatePoints(rec, integral);
+                    }
                 }
             }
         }

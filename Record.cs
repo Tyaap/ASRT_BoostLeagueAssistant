@@ -18,6 +18,7 @@ namespace ASRT_BoostLeagueAssistant
         public Completion Completion;
         public double Score;
         public int Position;
+        public int OldPosition; // Track position changes
         public double Points;
         public bool UsedExploit;
 

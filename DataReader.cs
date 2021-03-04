@@ -10,8 +10,8 @@ namespace ASRT_BoostLeagueAssistant
     {
         public static (List<Record>, List<(int, int)>) ReadLogs(string path)
         {
-            Dictionary<(int, string), int> roa = ReadRoA(path + "\\RoA.txt");
-            Dictionary<ulong, string> names = ReadPlayersBySteamID(path + "\\Names.txt");
+            Dictionary<(int, string), int> roa = ReadRoA(path + "\\Config\\RoA.txt");
+            Dictionary<ulong, string> names = ReadPlayersBySteamID(path + "\\Config\\Names.txt");
             List<Record> allData = new List<Record>();
             List<(int, int)> counts = new List<(int, int)>();
             int year = 2020;
@@ -59,7 +59,7 @@ namespace ASRT_BoostLeagueAssistant
             foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
-                if (elements.Length == 2 && ulong.TryParse(elements[1], out ulong steamId))
+                if (elements.Length >= 2 && ulong.TryParse(elements[1], out ulong steamId))
                 {
                     players[elements[0]] = steamId;
                 }
@@ -73,7 +73,7 @@ namespace ASRT_BoostLeagueAssistant
             foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
-                if (elements.Length == 2 && ulong.TryParse(elements[1], out ulong steamId))
+                if (elements.Length >= 2 && ulong.TryParse(elements[1], out ulong steamId))
                 {
                     players[steamId] = elements[0];
                 }

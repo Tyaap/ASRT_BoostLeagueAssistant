@@ -17,7 +17,6 @@
 
         public static int Compare(PlayerSummary x, PlayerSummary y)
         {
-            int comp = y.totalPoints.CompareTo(x.totalPoints);
             return x.totalPoints != y.totalPoints ? 
                 y.totalPoints.CompareTo(x.totalPoints) : 
                 (y.totalPoints / y.nTracks).CompareTo(x.totalPoints / x.nTracks);
