@@ -76,7 +76,7 @@ namespace ASRT_BoostLeagueAssistant
         }
 
 
-        public static List<List<Record>> GetOrderedMapResults(Dictionary<Map, List<Record>> mapToSteamIdToRecord, IEnumerable<Map> mapOrder = null, bool updatePositions = true, Comparison<Record> recordComp = null)
+        public static List<List<Record>> OrderedMapResults(Dictionary<Map, List<Record>> mapToSteamIdToRecord, IEnumerable<Map> mapOrder = null, bool calcRanks = true, Comparison<Record> recordComp = null)
         {
             if (mapOrder == null)
             {
@@ -91,7 +91,7 @@ namespace ASRT_BoostLeagueAssistant
             {
                 if (mapToSteamIdToRecord.TryGetValue(map, out var mapResults))
                 {
-                    if (updatePositions)
+                    if (calcRanks)
                     {
                         UpdatePositions(mapResults, recordComp); // Caution - we lose the old positions
                     }
@@ -105,40 +105,26 @@ namespace ASRT_BoostLeagueAssistant
             return orderedResults;
         }
 
-        public static List<Dictionary<ulong, Record>> GetOrderedMapResults(Dictionary<Map, Dictionary<ulong, Record>> mapToSteamIdToRecord, IEnumerable<Map> mapOrder = null, bool updatePositions = true, Comparison<Record> recordComp = null)
+        public static void UpdatePositions(Dictionary<Map, Dictionary<ulong, Record>> mapToSteamIdToRecord, Comparison<Record> comp = null)
         {
-            if (mapOrder == null)
+            foreach (var recDict in mapToSteamIdToRecord.Values)
             {
-                mapOrder = Indexing.mapOrder;
+                UpdatePositions(recDict, comp);
             }
-            if (recordComp == null)
+        }
+
+        public static void UpdatePositions(Dictionary<Map, List<Record>> mapToRecords, Comparison<Record> comp = null)
+        {
+            foreach (var recList in mapToRecords.Values)
             {
-                recordComp = Record.ComparePoints;
+                UpdatePositions(recList, comp);
             }
-            List<Dictionary<ulong, Record>> orderedResults = new List<Dictionary<ulong,Record>>();
-            foreach (Map map in mapOrder)
-            {
-                if (mapToSteamIdToRecord.TryGetValue(map, out Dictionary<ulong, Record> mapResults))
-                {
-                    if (updatePositions)
-                    {
-                        UpdatePositions(mapResults, recordComp); // Caution - we lose the old positions
-                    }
-                    orderedResults.Add(mapResults);
-                }
-                else
-                {
-                    orderedResults.Add(new Dictionary<ulong, Record>());
-                }
-            }
-            return orderedResults;
         }
 
         public static void UpdatePositions(Dictionary<ulong, Record> recDict, Comparison<Record> comp = null)
         {
             List<Record> recList = new List<Record>(recDict.Values);
-            recList.Sort(comp);
-            UpdatePositions(recList);
+            UpdatePositions(recList, comp);
         }
 
         public static void UpdatePositions(List<Record> recList, Comparison<Record> comp = null)

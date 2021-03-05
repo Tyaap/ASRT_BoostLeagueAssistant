@@ -27,12 +27,13 @@ namespace ASRT_BoostLeagueAssistant
             Dictionary<int, Dictionary<Map, Dictionary<ulong, Record>>> mdToMapToSteamIdToRecord = Indexing.MdToMapToSteamIdToRecord(data);
             Dictionary<Map, Dictionary<ulong, Record>> playerBestScores = new Dictionary<Map, Dictionary<ulong, Record>>();
             Dictionary<Map, List<Record>> bestScoreProgression = new Dictionary<Map, List<Record>>();
+            IEnumerable<ulong> lastMatchdaySteamIds = null;
             foreach ((int, int) count in counts)
             {
                 Dictionary<ulong, PlayerSummary> yearSummary = new Dictionary<ulong, PlayerSummary>();
                 for (int i = 0; i < count.Item2; i++)
                 {
-                    List<Dictionary<ulong, Record>> results = Indexing.GetOrderedMapResults(mdToMapToSteamIdToRecord[++matchday]);
+                    List<Dictionary<ulong, Record>> results = Details.OrderedMapResults(mdToMapToSteamIdToRecord[++matchday]);
 
                     // Matchday results
                     Dictionary<ulong, PlayerSummary>  matchdaySummary = Summary.SingleMatchdaySummary(results);
@@ -45,9 +46,13 @@ namespace ASRT_BoostLeagueAssistant
                     summaryPoints.ToFile(matchdayDir + "\\MD#" + matchday + "_Summary_Points.txt");
                     summaryPositions.ToFile(matchdayDir + "\\MD#" + matchday + "_Summary_Positions.txt");
 
-                    Summary.AddMatchdaySummary(yearSummary, matchdaySummary, calcOldRanks: matchday == nMatchdays, calcNewRanks: i == count.Item2 - 1);
-                    BestScores.UpdatePlayerBestScores(playerBestScores, results);
+                    Summary.UpdateMuitiMatchdaySummary(yearSummary, matchdaySummary, calcOldRanks: matchday == nMatchdays, calcNewRanks: i == count.Item2 - 1);
+                    BestScores.UpdatePlayerBestScores(playerBestScores, results, calcOldRanks: matchday == nMatchdays, calcNewRanks: matchday == nMatchdays);
                     BestScores.UpdateBestScoreProgression(bestScoreProgression, results);
+                    if (matchday == nMatchdays)
+                    {
+                        lastMatchdaySteamIds = matchdaySummary.Keys;
+                    }
                 }
 
                 Table yearSummaryPoints = Summary.MakeSummaryTable(yearSummary, frequencyData: true, summaryName: count.Item1 + " LEADERBOARD", usePoints: true);
@@ -59,12 +64,18 @@ namespace ASRT_BoostLeagueAssistant
             }
 
             // All-time results
-            List<Dictionary<ulong, Record>> bestScoreResults = Indexing.GetOrderedMapResults(playerBestScores, recordComp: Record.CompareScores);
-            Table bestScoresDetails = Details.MakeDetailsTable(bestScoreResults, eventsPerRow: 4, nResults: 20, showMatchdays: false, showPositions: true, showPoints: false);
+            List<Dictionary<ulong, Record>> bestScoreResults = Details.OrderedMapResults(playerBestScores, updatePositions: false);
+            Table bestScoresDetails = Details.MakeDetailsTable(bestScoreResults, eventsPerRow: 4, nResults: 20, showMatchdays: false, showPositions: true, showPosDeltas: true, showPoints: false);
 
-            List<List<Record>> bestProgressionResults = Indexing.GetOrderedMapResults(bestScoreProgression, recordComp: Record.CompareScores);
+            Dictionary<ulong, PlayerSummary> bestScoresSummary = BestScores.PlayerBestScoresSummary(bestScoreResults, nPositions: 20);
+            Summary.ShowDeltas(bestScoresSummary, lastMatchdaySteamIds);
+            Table bestScoresSummaryPositions = Summary.MakeSummaryTable(bestScoresSummary, "Overall Ranks", frequencyData: true, usePoints: false);
+
+            List <List<Record>> bestProgressionResults = Indexing.OrderedMapResults(bestScoreProgression, recordComp: Record.CompareScores);
             Table bestScoresProgressionDetails = Details.MakeDetailsTable(bestProgressionResults, eventsPerRow: 4, showMatchdays: true, showPositions: false, showPoints: false);
+
             bestScoresDetails.ToFile(root + "\\AllTime_BestScores_Details.txt");
+            bestScoresSummaryPositions.ToFile(root + "\\AllTime_BestScores_Summary.txt");
             bestScoresProgressionDetails.ToFile(root + "\\AllTime_BestScores_Progress.txt");
         }
     }

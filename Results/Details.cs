@@ -1,23 +1,54 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ASRT_BoostLeagueAssistant.Results
 {
     class Details
     {
+        public static List<Dictionary<ulong, Record>> OrderedMapResults(Dictionary<Map, Dictionary<ulong, Record>> mapToSteamIdToRecord, IEnumerable<Map> mapOrder = null, bool updatePositions = true, Comparison<Record> recordComp = null)
+        {
+            if (mapOrder == null)
+            {
+                mapOrder = Indexing.mapOrder;
+            }
+            if (recordComp == null)
+            {
+                recordComp = Record.ComparePoints;
+            }
+            List<Dictionary<ulong, Record>> orderedResults = new List<Dictionary<ulong, Record>>();
+            foreach (Map map in mapOrder)
+            {
+                if (mapToSteamIdToRecord.TryGetValue(map, out Dictionary<ulong, Record> mapResults))
+                {
+                    if (updatePositions)
+                    {
+                        Indexing.UpdatePositions(mapResults, recordComp); // Caution - we lose the old positions
+                    }
+                    orderedResults.Add(mapResults);
+                }
+                else
+                {
+                    orderedResults.Add(new Dictionary<ulong, Record>());
+                }
+            }
+            return orderedResults;
+        }
+
+
         public static Table MakeDetailsTable(IEnumerable<Dictionary<ulong, Record>> results, int eventsPerRow = 1,
-            int nResults = -1, bool showHeadings = true, bool showPoints = true, bool showPositions = true, bool showMatchdays = false)
+            int nResults = -1, bool showHeadings = true, bool showMatchdays = false, bool showPositions = true, bool showPosDeltas = false, bool showPoints = true)
         {
             List<IEnumerable<Record>> resultsList = new List<IEnumerable<Record>>();
             foreach (var result in results)
             {
                 resultsList.Add(Indexing.RecordDictToList(result));
             }
-            return MakeDetailsTable(resultsList, eventsPerRow, nResults, showHeadings, showPoints, showPositions, showMatchdays);
+            return MakeDetailsTable(resultsList, eventsPerRow, nResults, showHeadings, showMatchdays, showPositions, showPosDeltas, showPoints);
         }
 
         public static Table MakeDetailsTable(IEnumerable<IEnumerable<Record>> results, int eventsPerRow = 1,
-            int nResults = -1, bool showHeadings = true, bool showPoints = true, bool showPositions = true, bool showMatchdays = false)
+            int nResults = -1, bool showHeadings = true, bool showMatchdays = false, bool showPositions = true, bool showPosDeltas = false, bool showPoints = true)
         {
             Table table = new Table();
             int r = 0;
@@ -25,7 +56,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             int er = 0; // events on current row
             foreach (var eventResults in results)
             {
-                InsertEventDetails(r, c, eventResults, table, nResults, showHeadings, showPoints, showPositions, showMatchdays);
+                InsertEventDetails(r, c, eventResults, table, nResults, showHeadings, showMatchdays, showPositions, showPosDeltas, showPoints);
                 er++;
                 if (er == eventsPerRow)
                 {
@@ -35,7 +66,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                 }
                 else
                 {
-                    c += 4 + (showPoints ? 1 : 0) + (showPositions ? 1 : 0) + (showMatchdays ? 1 : 0);
+                    c += 4 + (showMatchdays ? 1 : 0) + (showPositions ? 1 : 0) + (showPosDeltas ? 1 : 0) + (showPoints ? 1 : 0);
                 }
             }
             return table;
@@ -52,8 +83,9 @@ namespace ASRT_BoostLeagueAssistant.Results
 
             // Event info
             table[r, c++] = eventResults.First().Map.GetDescription();
-            table[r++, c] = eventResults.First().EventType.GetDescription();
+            //table[r, c] = eventResults.First().EventType.GetDescription();
             c--;
+            r++;
 
             // Headings
             if (showHeadings)
@@ -99,7 +131,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                 }
                 if (showPosDeltas)
                 {
-                    if (rec.OldPosition != 0)
+                    if (rec.ShowPosDelta && rec.OldPosition != 0)
                     {
                         table[r, c] = DeltaIndicator(rec.OldPosition, rec.Position, inverseArrow: true);
                     }
@@ -116,7 +148,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             }
         }
 
-        public static string DeltaIndicator(int a, int b, bool inverseArrow = false)
+        public static string DeltaIndicator(double a, double b, bool inverseArrow = false)
         {
             if (a == b)
             {

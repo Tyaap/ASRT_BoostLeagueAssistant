@@ -18,9 +18,13 @@ namespace ASRT_BoostLeagueAssistant
         public Completion Completion;
         public double Score;
         public int Position;
-        public int OldPosition; // Track position changes
         public double Points;
         public bool UsedExploit;
+
+
+        // Best score tracking variables
+        public bool ShowPosDelta; // selectively show position deltas (new PBs only)
+        public int OldPosition; // position changes
 
         public string ScoreString()
         {
