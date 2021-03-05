@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASRT_BoostLeagueAssistant.Results
 {
@@ -38,16 +35,12 @@ namespace ASRT_BoostLeagueAssistant.Results
                 i++;
             }
             // Calculate rankings
-            CalculateSummaryRanks(summary);
+            CalculateRanks(summary);
             return summary;
         }
 
-        public static void UpdateMuitiMatchdaySummary(Dictionary<ulong, PlayerSummary> mmdSummary, Dictionary<ulong, PlayerSummary> mdSummary, int nPositions = 20, int nWins = 10, bool calcOldRanks = false, bool calcNewRanks = false)
+        public static void UpdateMuitiMatchdaySummary(Dictionary<ulong, PlayerSummary> mmdSummary, Dictionary<ulong, PlayerSummary> mdSummary, int nPositions = 20, int nWins = 10)
         {
-            if (calcOldRanks)
-            {
-                CalculateSummaryRanks(mmdSummary);
-            }
             foreach (var pair in mdSummary)
             {
                 if (!mmdSummary.TryGetValue(pair.Key, out PlayerSummary playerSummary))
@@ -75,6 +68,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                         playerSummary.points[10 - (int)points]++;
                     }
                 }
+                playerSummary.totalPointsOld = playerSummary.totalPoints;
                 playerSummary.totalPoints += pair.Value.totalPoints;
                 playerSummary.totalPositions += pair.Value.totalPositions;
                 playerSummary.nTracks += pair.Value.nTracks;
@@ -83,20 +77,11 @@ namespace ASRT_BoostLeagueAssistant.Results
                     playerSummary.wins[pair.Value.rank - 1]++;
                 }
                 playerSummary.parts++;
-                if (calcOldRanks)
-                {
-                    playerSummary.rankOld = playerSummary.rank;
-                    playerSummary.showRankDelta = true; // todo: refactor this to match the best scores summary
-                }
-            }
-            if (calcNewRanks)
-            {
-                CalculateSummaryRanks(mmdSummary);
             }
         }
 
 
-        public static void CalculateSummaryRanks(Dictionary<ulong, PlayerSummary> summary)
+        public static void CalculateRanks(Dictionary<ulong, PlayerSummary> summary)
         {
             List<PlayerSummary> summaryList = new List<PlayerSummary>(summary.Values);
             summaryList.Sort(PlayerSummary.Compare);
@@ -107,7 +92,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             }
         }
 
-        public static void CalculateSummaryOldRanks(Dictionary<ulong, PlayerSummary> summary)
+        public static void CalculateOldRanks(Dictionary<ulong, PlayerSummary> summary)
         {
             List<PlayerSummary> summaryList = new List<PlayerSummary>(summary.Values);
             summaryList.Sort(PlayerSummary.CompareOld);
@@ -121,7 +106,6 @@ namespace ASRT_BoostLeagueAssistant.Results
         public static Table MakeSummaryTable(Dictionary<ulong, PlayerSummary> summary, string summaryName = "RESULTS",
             IEnumerable<string> headings = null, bool frequencyData = false, bool usePoints = true)
         {
-
             Table table = new Table();
             if (!summary.Any())
             {
@@ -140,11 +124,11 @@ namespace ASRT_BoostLeagueAssistant.Results
             bool hasOldTotalPoints = false;
             foreach (PlayerSummary playerSummary in summary.Values)
             {
-                if (playerSummary.rankOld != 0)
+                if (playerSummary.showRankDelta && playerSummary.rankOld != 0)
                 {
                     hasOldRanks = true;
                 }
-                if (playerSummary.totalPointsOld != 0)
+                if (playerSummary.showPointDelta && playerSummary.totalPointsOld != 0)
                 {
                     hasOldTotalPoints = true;
                 }
@@ -305,14 +289,14 @@ namespace ASRT_BoostLeagueAssistant.Results
             return table;
         }
 
-        public static void ShowDeltas(Dictionary<ulong, PlayerSummary> summary, IEnumerable<ulong> steamIds)
+        public static void ShowDeltas(Dictionary<ulong, PlayerSummary> summary, IEnumerable<ulong> steamIds, bool pointDelta = true, bool rankDelta = true)
         {
             foreach(ulong id in steamIds)
             {
                 if (summary.TryGetValue(id, out var playerSummary))
                 {
-                    playerSummary.showPointDelta = true;
-                    playerSummary.showRankDelta = true;
+                    playerSummary.showPointDelta = pointDelta;
+                    playerSummary.showRankDelta = rankDelta;
                 }
             }
         }

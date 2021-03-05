@@ -223,6 +223,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid event type in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid event type in " + sessionName + ":\n" +
@@ -231,7 +232,6 @@ namespace ASRT_BoostLeagueAssistant
                     EnumExtensions.GetDescriptionList<EventType>(),
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return 0;
             }
         }
@@ -244,6 +244,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid event date/time in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid event date/time in " + sessionName + ":\n" +
@@ -252,7 +253,6 @@ namespace ASRT_BoostLeagueAssistant
                     "yy/MM/dd HH:mm",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return DateTime.MinValue;
             }
         }
@@ -265,6 +265,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid player position in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player position in " + sessionName + ":\n" +
@@ -272,7 +273,6 @@ namespace ASRT_BoostLeagueAssistant
                     "The position must be an integer, and can have the ° symbol after it.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return 0;
             }
         }
@@ -286,17 +286,18 @@ namespace ASRT_BoostLeagueAssistant
                 double seconds = double.Parse(timeParts[1]);
                 if (seconds > 60 || minutes > 60)
                 {
+                    Console.WriteLine("Warning: Player time with minutes/seconds larger than sixty in " + sessionName + ": " + s);
                     /*
                     MessageBox.Show(
                         "Player time with minutes/seconds larger than sixty: " + s,
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     */
-                    Environment.Exit(0);
                 }
                 return minutes * 60 + seconds;
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid player time in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player time in " + sessionName + ":\n" +
@@ -305,7 +306,6 @@ namespace ASRT_BoostLeagueAssistant
                     "mm:ss.fff",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return 0;
             }
         }
@@ -317,9 +317,10 @@ namespace ASRT_BoostLeagueAssistant
                 double percent = Math.Min(100f, double.Parse(s.Split('%')[0]));
                 if (percent < 0 || percent > 100)
                 {
+                    Console.WriteLine("Warning: Player DNF percentage outside expected range in " + sessionName + ": " + s);
                     /*
                     MessageBox.Show(
-                        "Player DNF percentage outside expected range: " + s,
+                        "Player DNF percentage outside expected range in  " + s,
                         "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     */
                 }
@@ -327,6 +328,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid player DNF percentage in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player DNF percentage in " + sessionName + ":\n" +
@@ -348,6 +350,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid player score in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player score in " + sessionName + ":\n" +
@@ -355,7 +358,6 @@ namespace ASRT_BoostLeagueAssistant
                     "The score must be a number, time, or percentage.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return 0;
             }
         }
@@ -368,6 +370,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid character name in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid character name in " + sessionName + ":\n" +
@@ -376,7 +379,6 @@ namespace ASRT_BoostLeagueAssistant
                     EnumExtensions.GetDescriptionList<Character>(),
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return 0;
             }
         }
@@ -389,6 +391,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid player points in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player points in " + sessionName + ":\n" +
@@ -396,7 +399,6 @@ namespace ASRT_BoostLeagueAssistant
                     "The points must be a number.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return 0;
             }
         }

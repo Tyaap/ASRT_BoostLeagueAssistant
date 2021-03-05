@@ -165,9 +165,6 @@ namespace ASRT_BoostLeagueAssistant.Results
                 }
                 i++;
             }
-            // Calculate rankings
-            Summary.CalculateSummaryRanks(summary);
-            Summary.CalculateSummaryOldRanks(summary);
             return summary;
         }
     }
