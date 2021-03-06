@@ -3,7 +3,6 @@ A tool to automatically generate results for the S&ASRT Boost League
 Guide: https://steamcommunity.com/sharedfiles/filedetails/?id=2291460373
 Results: https://docs.google.com/spreadsheets/d/14ihAVTt1xXcz2gUwUivRhJgWVDb92BgQCwGYk1IPKs4/edit#gid=2114690704
 
-
 The folder structure:
 
 --> Boost League
