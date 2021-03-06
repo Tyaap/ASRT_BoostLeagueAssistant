@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ASRT_BoostLeagueAssistant
+namespace ASRT_BoostLeagueAssistant.Results
 {
     class PointSystem
     {
