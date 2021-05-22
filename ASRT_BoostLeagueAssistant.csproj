@@ -1,15 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <TargetFramework>net5.0-windows7.0</TargetFramework>
     <StartupObject>ASRT_BoostLeagueAssistant.Program</StartupObject>
     <ApplicationIcon>692582841028182077_1a5_icon.ico</ApplicationIcon>
-    <NoWin32Manifest>true</NoWin32Manifest>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
   </PropertyGroup>
-
 </Project>

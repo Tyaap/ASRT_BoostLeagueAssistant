@@ -27,7 +27,7 @@ public static class EnumExtensions
     public static T GetValueFromDescription<T>(string description)
     {
         var type = typeof(T);
-        if (!type.IsEnum) throw new InvalidOperationException();
+        if (!type.IsEnum) throw new InvalidOperationException("Cannot get description for non-enum type " + type);
         var fields = type.GetFields();
         int fieldCount = fields.Length;
         for (int i = 0; i < fieldCount; i++)
@@ -46,7 +46,7 @@ public static class EnumExtensions
                     return (T)field.GetValue(null);
             }
         }
-        throw new ArgumentException("Not found.", "description");
+        throw new ArgumentException("Description \"" + description + "\" not found for enum of type " + type, "description");
     }
 
     public static string GetDescriptionList<T>()

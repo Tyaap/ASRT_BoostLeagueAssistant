@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace ASRT_BoostLeagueAssistant
 {
@@ -10,18 +11,18 @@ namespace ASRT_BoostLeagueAssistant
     {
         public static (List<Record>, List<(int, int)>) ReadLogs(string path)
         {
-            Dictionary<(int, string), int> roa = ReadRoA(path + "\\Config\\RoA.txt");
-            Dictionary<ulong, string> names = ReadPlayersBySteamID(path + "\\Config\\Names.txt");
+            Dictionary<(int, string), int> roa = ReadRoA(path + "Config/RoA.txt");
+            Dictionary<ulong, string> names = ReadPlayersBySteamID(path + "Config/Names.txt");
             List<Record> allData = new List<Record>();
             List<(int, int)> counts = new List<(int, int)>();
             int year = 2020;
             int matchday = 1;
-            while (Directory.Exists(path + "\\" + year))
+            while (Directory.Exists(path + year))
             {
                 int count = 0;
-                while (Directory.Exists(path + "\\" + year + "\\MD#" + matchday))
+                while (Directory.Exists(path + year + "/MD#" + matchday))
                 {
-                    string[] lobbyDirs = Directory.GetDirectories(path + "\\" + year + "\\MD#" + matchday, "Lobby*");
+                    string[] lobbyDirs = Directory.GetDirectories(path + year + "/MD#" + matchday, "Lobby*");
                     foreach(string lobbyDir in lobbyDirs)
                     {
                         string[] logFiles = Directory.GetFiles(lobbyDir, "SessionEvents*.txt");
@@ -36,7 +37,10 @@ namespace ASRT_BoostLeagueAssistant
                             players = ReadPlayersByName(playerFiles[0]);
                         }
                         string lobbyName = Path.GetFileName(lobbyDir);
-                        roa.TryGetValue((matchday, lobbyName), out int roaPlaneLaps);
+                        if (roa.TryGetValue((matchday, lobbyName), out int roaPlaneLaps))
+                        {
+                            roa.Remove((matchday, lobbyName));
+                        }
                         ReadLog(logFiles[0], year, matchday, lobbyName, players, names, roaPlaneLaps, allData);
                     }
                     matchday++;
@@ -50,19 +54,30 @@ namespace ASRT_BoostLeagueAssistant
             {
                 r.Index = i++;
             }
+            foreach(var pair in roa)
+            {
+                Console.WriteLine("Warning: " + path + "Config/RoA.txt contains MD#" + pair.Key.Item1 + " - " + pair.Key.Item2 + ", but no data was found!");
+            }
             return (allData, counts);
         }
 
         public static Dictionary<string,ulong> ReadPlayersByName(string path)
         {
             Dictionary<string, ulong> players = new Dictionary<string, ulong>();
-            foreach (string line in File.ReadAllLines(path))
+            foreach (string line in File.ReadAllLines(path).Skip(1))
             {
                 string[] elements = line.Split('\t');
-                if (elements.Length >= 2 && ulong.TryParse(elements[1], out ulong steamId))
+                if (elements.Length < 2)
                 {
-                    players[elements[0]] = steamId;
+                    Console.WriteLine("Warning: " + path + " contains line with less than two elements: \"" + line + "\" (missing tab?)");
+                    continue;
                 }
+                if (!ulong.TryParse(elements[1], out ulong steamId))
+                {
+                    Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                    continue;
+                }
+                players[elements[0]] = steamId;
             }
             return players;
         }
@@ -70,13 +85,20 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<ulong, string> ReadPlayersBySteamID(string path)
         {
             Dictionary<ulong, string> players = new Dictionary<ulong, string>();
-            foreach (string line in File.ReadAllLines(path))
+            foreach (string line in File.ReadAllLines(path).Skip(1))
             {
                 string[] elements = line.Split('\t');
-                if (elements.Length >= 2 && ulong.TryParse(elements[1], out ulong steamId))
+                if (elements.Length < 2)
                 {
-                    players[steamId] = elements[0];
+                    Console.WriteLine("Warning: " + path + " contains line with less than two elements: \"" + line + "\" (missing tab?)");
+                    continue;
                 }
+                if (!ulong.TryParse(elements[1], out ulong steamId))
+                {
+                    Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                    continue;
+                }
+                players[steamId] = elements[0];
             }
             return players;
         }
@@ -84,15 +106,25 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<(int, string), int> ReadRoA(string path)
         {
             Dictionary<(int, string), int> roa = new Dictionary<(int, string), int>();
-            foreach (string line in File.ReadAllLines(path))
+            foreach (string line in File.ReadAllLines(path).Skip(1))
             {
                 string[] elements = line.Split('\t');
-                if (elements.Length == 3 && 
-                    int.TryParse(elements[0], out int matchDay) &&
-                    int.TryParse(elements[2], out int planeLaps))
+                if (elements.Length < 3)
                 {
-                    roa[(matchDay, elements[1])] = planeLaps;
+                    Console.WriteLine("Warning: " + path + " contains a line with less than three elements: \"" + line + "\" (missing tab?)");
+                    continue;
                 }
+                if (!int.TryParse(elements[0], out int matchDay))
+                {
+                    Console.WriteLine("Warning: " + path + " contains an invalid matchday number: \"" + elements[0] + "\"");
+                    continue;
+                }
+                if (!int.TryParse(elements[2], out int planeLaps))
+                {
+                    Console.WriteLine("Warning: " + path + " contains an invalid number of plane laps: \"" + elements[2] + "\"");
+                    continue;
+                }
+                roa[(matchDay, elements[1])] = planeLaps;
             }
             return roa;
         }
@@ -202,6 +234,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
+                Console.WriteLine("Warning: Invalid map name in " + sessionName + ": " + s);
                 /*
                 MessageBox.Show(
                     "Invalid map name in " + sessionName + ":\n" +
@@ -210,7 +243,6 @@ namespace ASRT_BoostLeagueAssistant
                     EnumExtensions.GetDescriptionList<Map>(),
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 */
-                Environment.Exit(0);
                 return 0;
             }
         }
@@ -336,7 +368,6 @@ namespace ASRT_BoostLeagueAssistant
                     "The correct format is:\n" +
                     "{number}% (DNF)",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Environment.Exit(0);
                 */
                 return 0;
             }

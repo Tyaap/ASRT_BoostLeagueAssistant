@@ -32,7 +32,7 @@ namespace ASRT_BoostLeagueAssistant
 ");
 
             // Load data
-            string root = ".";
+            string root = "";
             List<Record> data;
             List<(int, int)> counts;
             try
@@ -42,7 +42,7 @@ namespace ASRT_BoostLeagueAssistant
             catch(Exception e)
             {
                 Console.WriteLine(
-                    "Error loading data!\n" + e + "\n" +
+                    "Error loading data!\n" + e.Message + "\n" +
                     "Press any key to close this window...");
                 Console.ReadKey();
                 return;
@@ -69,21 +69,21 @@ namespace ASRT_BoostLeagueAssistant
                 for (int i = 0; i < count.Item2; i++)
                 {
                     // Matchday results
-                    string matchdayDir = root + "\\" + count.Item1 + "\\MD#" + ++matchday;
+                    string matchdayDir = root + count.Item1 + "/MD#" + ++matchday;
 
-                    Console.WriteLine(matchdayDir + "\\MD#" + matchday + "_Details.txt");
+                    Console.WriteLine(matchdayDir + "/MD#" + matchday + "_Details.txt");
                     List<Dictionary<ulong, Record>> results = Details.OrderedMapResults(mdToMapToSteamIdToRecord[matchday]);
                     Table details = Details.MakeDetailsTable(results, 4);
-                    details.ToFile(matchdayDir + "\\MD#" + matchday + "_Details.txt");
+                    details.ToFile(matchdayDir + "/MD#" + matchday + "_Details.txt");
 
-                    Console.WriteLine(matchdayDir + "\\MD#" + matchday + "_Summary_Points.txt");
+                    Console.WriteLine(matchdayDir + "/MD#" + matchday + "_Summary_Points.txt");
                     Dictionary<ulong, PlayerSummary> matchdaySummary = Summary.SingleMatchdaySummary(results);
                     Table summaryPoints = Summary.MakeSummaryTable(matchdaySummary, usePoints: true);
-                    summaryPoints.ToFile(matchdayDir + "\\MD#" + matchday + "_Summary_Points.txt");
+                    summaryPoints.ToFile(matchdayDir + "/MD#" + matchday + "_Summary_Points.txt");
 
-                    Console.WriteLine(matchdayDir + "\\MD#" + matchday + "_Summary_Positions.txt");
+                    Console.WriteLine(matchdayDir + "/MD#" + matchday + "_Summary_Positions.txt");
                     Table summaryPositions = Summary.MakeSummaryTable(matchdaySummary, usePoints: false);
-                    summaryPositions.ToFile(matchdayDir + "\\MD#" + matchday + "_Summary_Positions.txt");
+                    summaryPositions.ToFile(matchdayDir + "/MD#" + matchday + "_Summary_Positions.txt");
 
                     // Yearly / all-time calculations
                     Summary.UpdateMuitiMatchdaySummary(yearSummary, matchdaySummary);
@@ -102,35 +102,35 @@ namespace ASRT_BoostLeagueAssistant
                 }
 
                 // Yearly results
-                string yearDir = root + "\\" + count.Item1;
+                string yearDir = root + count.Item1;
 
-                Console.WriteLine(yearDir + "\\" + count.Item1 + "_Summary_Points.txt");
+                Console.WriteLine(yearDir + "/" + count.Item1 + "_Summary_Points.txt");
                 Table yearSummaryPoints = Summary.MakeSummaryTable(yearSummary, frequencyData: true, summaryName: count.Item1 + " LEADERBOARD", usePoints: true);
-                yearSummaryPoints.ToFile(yearDir + "\\" + count.Item1 + "_Summary_Points.txt");
+                yearSummaryPoints.ToFile(yearDir + "/" + count.Item1 + "_Summary_Points.txt");
 
-                Console.WriteLine(yearDir + "\\" + count.Item1 + "_Summary_Positions.txt");
+                Console.WriteLine(yearDir + "/" + count.Item1 + "_Summary_Positions.txt");
                 Table yearSummaryPositions = Summary.MakeSummaryTable(yearSummary, frequencyData: true, summaryName: count.Item1 + " LEADERBOARD", usePoints: false);
-                yearSummaryPositions.ToFile(yearDir + "\\" + count.Item1 + "_Summary_Positions.txt");
+                yearSummaryPositions.ToFile(yearDir + "/" + count.Item1 + "_Summary_Positions.txt");
             }
 
             // All-time results
-            Console.WriteLine(root + "\\AllTime_BestScores_Details.txt");
+            Console.WriteLine(root + "AllTime_BestScores_Details.txt");
             List<Dictionary<ulong, Record>> bestScoreResults = Details.OrderedMapResults(playerBestScores, updatePositions: false);
             Table bestScoresDetails = Details.MakeDetailsTable(bestScoreResults, eventsPerRow: 4, nResults: 20, showMatchdays: false, showPositions: true, showPosDeltas: true, showPoints: false);
-            bestScoresDetails.ToFile(root + "\\AllTime_BestScores_Details.txt");
+            bestScoresDetails.ToFile(root + "AllTime_BestScores_Details.txt");
             
-            Console.WriteLine(root + "\\AllTime_BestScores_Summary.txt");
+            Console.WriteLine(root + "AllTime_BestScores_Summary.txt");
             Dictionary<ulong, PlayerSummary> bestScoresSummary = BestScores.PlayerBestScoresSummary(bestScoreResults, nPositions: 20);
             Summary.CalculateRanks(bestScoresSummary);
             Summary.CalculateOldRanks(bestScoresSummary);
             Summary.ShowDeltas(bestScoresSummary, lastMatchdaySteamIds, pointDelta: true, rankDelta: true);
             Table bestScoresSummaryPositions = Summary.MakeSummaryTable(bestScoresSummary, "Overall Ranks", frequencyData: true, usePoints: false);
-            bestScoresSummaryPositions.ToFile(root + "\\AllTime_BestScores_Summary.txt");
+            bestScoresSummaryPositions.ToFile(root + "AllTime_BestScores_Summary.txt");
             
-            Console.WriteLine(root + "\\AllTime_BestScores_Progress.txt");
+            Console.WriteLine(root + "AllTime_BestScores_Progress.txt");
             List<List<Record>> bestProgressionResults = Indexing.OrderedMapResults(bestScoreProgression, recordComp: Record.CompareScores);
             Table bestScoresProgressionDetails = Details.MakeDetailsTable(bestProgressionResults, eventsPerRow: 4, showMatchdays: true, showPositions: false, showPoints: false);
-            bestScoresProgressionDetails.ToFile(root + "\\AllTime_BestScores_Progress.txt");
+            bestScoresProgressionDetails.ToFile(root + "AllTime_BestScores_Progress.txt");
 
             watch.Stop();
             Console.WriteLine(@"
