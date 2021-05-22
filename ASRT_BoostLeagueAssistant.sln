@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.31019.35
+VisualStudioVersion = 16.0.31229.75
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASRT_BoostLeagueAssistant", "ASRT_BoostLeagueAssistant.csproj", "{0378BEB4-1361-49AF-A029-5CCD2E3C4D1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASRT_BoostLeagueAssistant", "ASRT_BoostLeagueAssistant.csproj", "{BC1D33E7-60D7-49EB-ABCD-A30121120827}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0378BEB4-1361-49AF-A029-5CCD2E3C4D1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0378BEB4-1361-49AF-A029-5CCD2E3C4D1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0378BEB4-1361-49AF-A029-5CCD2E3C4D1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0378BEB4-1361-49AF-A029-5CCD2E3C4D1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC1D33E7-60D7-49EB-ABCD-A30121120827}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC1D33E7-60D7-49EB-ABCD-A30121120827}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC1D33E7-60D7-49EB-ABCD-A30121120827}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC1D33E7-60D7-49EB-ABCD-A30121120827}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {7E02A11F-B40A-4CB1-9EEB-6748EC879A75}
+		SolutionGuid = {47E12203-27CF-4706-8751-5F500F4B5787}
 	EndGlobalSection
 EndGlobal
