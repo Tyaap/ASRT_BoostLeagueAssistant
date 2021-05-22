@@ -1,4 +1,7 @@
 Boost League Assistant by Tyapp
+A tool to automatically generate results for the S&ASRT Boost League
+Guide: https://steamcommunity.com/sharedfiles/filedetails/?id=2291460373
+Results: https://docs.google.com/spreadsheets/d/14ihAVTt1xXcz2gUwUivRhJgWVDb92BgQCwGYk1IPKs4/edit#gid=2114690704
 
 The folder structure:
 
@@ -38,8 +41,7 @@ The folder structure:
 
 [2]: Names.txt
      Each line of the file contains a Steam ID (SteamID64) and a player name.
-     If the assistant finds a player matching the Steam ID, it will change their
-     name to the one given in the file.
+     If the assistant finds a player matching the Steam ID, it will change their name to the one given in the file.
 
 [3]: RoA.txt
      Each line of the file contains a matchday (e.g. MD#2), a lobby (e.g. Lobby A), and a number (between 1 and 3)
@@ -70,6 +72,9 @@ The folder structure:
      These files can be created automatically by using the EventLogger tool.
      The assistant can handle any track order, any number of repeated tracks, and any number of missing tracks.
      If a lobby repeats a track, the assistant will merge the results from the races and use each players best score.
+     If e.g. a player uses a glitch/exploit on a track, you can put an asterisk after their time in this file (e.g. 1:30.432*)
+     A time with an asterisk will not be used in the calculations of player points, or be included in all-time best store results.
+     However, a time with an asterisk is still awarded points and is included in the matchday results.
 
 [8]: Players(...).txt
      The (...) part can be anything, e.g. "Players_2020-11-10--20-15.txt"
