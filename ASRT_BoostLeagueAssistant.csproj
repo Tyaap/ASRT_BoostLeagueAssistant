@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0-windows7.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <StartupObject>ASRT_BoostLeagueAssistant.Program</StartupObject>
     <ApplicationIcon>692582841028182077_1a5_icon.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
