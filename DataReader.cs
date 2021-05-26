@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 
 namespace ASRT_BoostLeagueAssistant
 {
@@ -22,7 +21,7 @@ namespace ASRT_BoostLeagueAssistant
                 int count = 0;
                 while (Directory.Exists(path + year + "/MD#" + matchday))
                 {
-                    string[] lobbyDirs = Directory.GetDirectories(path + year + "/MD#" + matchday, "Lobby*");
+                    string[] lobbyDirs = Directory.GetDirectories(path + year + "/MD#" + matchday);
                     foreach(string lobbyDir in lobbyDirs)
                     {
                         string[] logFiles = Directory.GetFiles(lobbyDir, "SessionEvents*.txt");
@@ -64,7 +63,7 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<string,ulong> ReadPlayersByName(string path)
         {
             Dictionary<string, ulong> players = new Dictionary<string, ulong>();
-            foreach (string line in File.ReadAllLines(path).Skip(1))
+            foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
                 if (elements.Length < 2)
@@ -74,7 +73,10 @@ namespace ASRT_BoostLeagueAssistant
                 }
                 if (!ulong.TryParse(elements[1], out ulong steamId))
                 {
-                    Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                    if (elements[1] != "Steam ID") // This is the column name, so don't show a warning 
+                    {
+                        Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                    }
                     continue;
                 }
                 players[elements[0]] = steamId;
@@ -85,7 +87,7 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<ulong, string> ReadPlayersBySteamID(string path)
         {
             Dictionary<ulong, string> players = new Dictionary<ulong, string>();
-            foreach (string line in File.ReadAllLines(path).Skip(1))
+            foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
                 if (elements.Length < 2)
@@ -95,7 +97,10 @@ namespace ASRT_BoostLeagueAssistant
                 }
                 if (!ulong.TryParse(elements[1], out ulong steamId))
                 {
-                    Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                    if (elements[1] != "Steam ID") // This is the column name, so don't show a warning 
+                    {
+                        Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                    }
                     continue;
                 }
                 players[steamId] = elements[0];
@@ -106,7 +111,7 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<(int, string), int> ReadRoA(string path)
         {
             Dictionary<(int, string), int> roa = new Dictionary<(int, string), int>();
-            foreach (string line in File.ReadAllLines(path).Skip(1))
+            foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
                 if (elements.Length < 3)
@@ -116,7 +121,10 @@ namespace ASRT_BoostLeagueAssistant
                 }
                 if (!int.TryParse(elements[0], out int matchDay))
                 {
-                    Console.WriteLine("Warning: " + path + " contains an invalid matchday number: \"" + elements[0] + "\"");
+                    if (elements[0] != "Matchday") // This is the column name, so don't show a warning 
+                    {
+                        Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                    }
                     continue;
                 }
                 if (!int.TryParse(elements[2], out int planeLaps))

@@ -10,18 +10,12 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net5.0-windows7.0/ASRT_BoostLeagueAssistant.dll",
+            "program": "${workspaceFolder}/bin/Debug/net5.0/win-x64/ASRT_BoostLeagueAssistant.dll",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/../Boost League Data",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
+            "console": "integratedTerminal",
             "stopAtEntry": false
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
         }
     ]
 }
