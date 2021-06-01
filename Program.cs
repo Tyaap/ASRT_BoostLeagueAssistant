@@ -128,7 +128,7 @@ namespace ASRT_BoostLeagueAssistant
             bestScoresSummaryPositions.ToFile(root + "AllTime_BestScores_Summary.txt");
             
             Console.WriteLine(root + "AllTime_BestScores_Progress.txt");
-            List<List<Record>> bestProgressionResults = Indexing.OrderedMapResults(bestScoreProgression, recordComp: Record.CompareScores);
+            List<List<Record>> bestProgressionResults = Details.OrderedMapResults(bestScoreProgression, recordComp: Record.CompareScores);
             Table bestScoresProgressionDetails = Details.MakeDetailsTable(bestProgressionResults, eventsPerRow: 4, showMatchdays: true, showPositions: false, showPoints: false);
             bestScoresProgressionDetails.ToFile(root + "AllTime_BestScores_Progress.txt");
 

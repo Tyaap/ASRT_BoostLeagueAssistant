@@ -107,7 +107,12 @@ namespace ASRT_BoostLeagueAssistant
                 }
                 else if (x.Completion == Completion.Finished) // x and y both finished
                 {
-                    return x.Score.CompareTo(y.Score);
+                    int comp = x.Score.CompareTo(y.Score);
+                    if (comp == 0)
+                    {
+                        return x.MatchDay.CompareTo(y.MatchDay);
+                    }
+                    return comp;
                 }
                 else // x and y both DNF or eliminated
                 {
@@ -126,7 +131,12 @@ namespace ASRT_BoostLeagueAssistant
                 }
                 else if (x.Completion == Completion.Finished) // x and y both finished
                 {
-                    return x.Score.CompareTo(y.Score);
+                    int comp = x.Score.CompareTo(y.Score);
+                    if (comp == 0)
+                    {
+                        return x.MatchDay.CompareTo(y.MatchDay);
+                    }
+                    return comp;
                 }
                 else // x and y both DNF
                 {

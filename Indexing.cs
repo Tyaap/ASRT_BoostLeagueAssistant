@@ -75,36 +75,6 @@ namespace ASRT_BoostLeagueAssistant
             return recList;
         }
 
-
-        public static List<List<Record>> OrderedMapResults(Dictionary<Map, List<Record>> mapToSteamIdToRecord, IEnumerable<Map> mapOrder = null, bool calcRanks = true, Comparison<Record> recordComp = null)
-        {
-            if (mapOrder == null)
-            {
-                mapOrder = Indexing.mapOrder;
-            }
-            if (recordComp == null)
-            {
-                recordComp = Record.ComparePoints;
-            }
-            List<List<Record>> orderedResults = new List<List<Record>>();
-            foreach (Map map in mapOrder)
-            {
-                if (mapToSteamIdToRecord.TryGetValue(map, out var mapResults))
-                {
-                    if (calcRanks)
-                    {
-                        UpdatePositions(mapResults, recordComp); // Caution - we lose the old positions
-                    }
-                    orderedResults.Add(mapResults);
-                }
-                else
-                {
-                    orderedResults.Add(new List<Record>());
-                }
-            }
-            return orderedResults;
-        }
-
         public static void UpdatePositions(Dictionary<Map, Dictionary<ulong, Record>> mapToSteamIdToRecord, Comparison<Record> comp = null)
         {
             foreach (var recDict in mapToSteamIdToRecord.Values)
