@@ -177,7 +177,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             }
         }
 
-        public static string DeltaIndicator(double a, double b, bool inverseArrow = false)
+        public static string DeltaIndicator(decimal a, decimal b, bool inverseArrow = false)
         {
             if (a == b)
             {

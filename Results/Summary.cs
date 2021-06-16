@@ -21,7 +21,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                         playerSummary = new PlayerSummary()
                         {
                             name = rec.Name,
-                            points = new double[nEvents],
+                            points = new decimal[nEvents],
                             positions = new int[nEvents],
                         };
                         summary[rec.SteamID] = playerSummary;
@@ -48,7 +48,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                     playerSummary = new PlayerSummary()
                     {
                         name = pair.Value.name,
-                        points = new double[10],
+                        points = new decimal[10],
                         positions = new int[nPositions],
                         wins = new int[nWins],
                     };
@@ -61,7 +61,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                         playerSummary.positions[position - 1]++;
                     }
                 }
-                foreach (double points in pair.Value.points)
+                foreach (decimal points in pair.Value.points)
                 {
                     if (points > 0)
                     {
@@ -227,7 +227,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                 table[r, c++] = playerSummary.name;
                 if (usePoints && hasPoints)
                 {
-                    foreach (double points in playerSummary.points)
+                    foreach (decimal points in playerSummary.points)
                     {
                         if (points != 0)
                         {

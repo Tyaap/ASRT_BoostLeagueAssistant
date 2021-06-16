@@ -171,7 +171,7 @@ namespace ASRT_BoostLeagueAssistant
                     {
                         // Found a new result
                         int position = StringToPosition(elements[0], fileName);
-                        double score;
+                        decimal score;
                         Completion completion;
                         bool usedExploit = false;
                         string scoreStr = elements[2];
@@ -187,7 +187,7 @@ namespace ASRT_BoostLeagueAssistant
                         }
                         else if (scoreStr == "DNF")
                         {
-                            score = double.MaxValue;
+                            score = decimal.MaxValue;
                             completion = Completion.DNF;
                         }
                         else if (scoreStr.Contains('%'))
@@ -201,7 +201,7 @@ namespace ASRT_BoostLeagueAssistant
                             completion = Completion.Finished;
                         }
                         Character character = StringToCharacter(elements[3], fileName);
-                        double points = nElements >= 5 ? StringToPoints(elements[4], fileName) : 0;
+                        decimal points = nElements >= 5 ? StringToPoints(elements[4], fileName) : 0;
                         string name = elements[1];
                         if (players == null || !players.TryGetValue(name, out ulong steamId))
                         {
@@ -317,13 +317,13 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static double StringToTime(string s, string sessionName = "Session Log")
+        public static decimal StringToTime(string s, string sessionName = "Session Log")
         {
             try
             {
                 string[] timeParts = s.Split(':');
                 int minutes = int.Parse(timeParts[0]);
-                double seconds = double.Parse(timeParts[1]);
+                decimal seconds = decimal.Parse(timeParts[1]);
                 if (seconds > 60 || minutes > 60)
                 {
                     Console.WriteLine("Warning: Player time with minutes/seconds larger than sixty in " + sessionName + ": " + s);
@@ -350,11 +350,11 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static double StringToDNFPercent(string s, string sessionName = "Session Log")
+        public static decimal StringToDNFPercent(string s, string sessionName = "Session Log")
         {
             try
             {
-                double percent = Math.Min(100f, double.Parse(s.Split('%')[0]));
+                decimal percent = Math.Min(100, decimal.Parse(s.Split('%')[0]));
                 if (percent < 0 || percent > 100)
                 {
                     Console.WriteLine("Warning: Player DNF percentage outside expected range in " + sessionName + ": " + s);
@@ -381,11 +381,11 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static double StringToGeneralScore(string s, string sessionName = "Session Log")
+        public static decimal StringToGeneralScore(string s, string sessionName = "Session Log")
         {
             try
             {
-                return double.Parse(s);
+                return decimal.Parse(s);
             }
             catch
             {
@@ -422,11 +422,11 @@ namespace ASRT_BoostLeagueAssistant
             }
         }
 
-        public static double StringToPoints(string s, string sessionName = "Session Log")
+        public static decimal StringToPoints(string s, string sessionName = "Session Log")
         {
             try
             {
-                return double.Parse(s);
+                return decimal.Parse(s);
             }
             catch
             {

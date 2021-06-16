@@ -16,9 +16,9 @@ namespace ASRT_BoostLeagueAssistant
         public ulong SteamID;
         public Character Character;
         public Completion Completion;
-        public double Score;
+        public decimal Score;
         public int Position;
-        public double Points;
+        public decimal Points;
         public bool UsedExploit;
 
 
@@ -37,7 +37,7 @@ namespace ASRT_BoostLeagueAssistant
             {
                 if (Completion != Completion.DNF)
                 {
-                    s = TimeSpan.FromSeconds(Score).ToString(@"m\:ss\.fff");
+                    s = TimeSpan.FromSeconds((double)Score).ToString(@"m\:ss\.fff");
                 }
                 else if (Score <= 100 && Score >= 0)
                 {
@@ -50,7 +50,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             else
             {
-                s = TimeSpan.FromSeconds(Score).ToString(@"m\:ss\.fff");
+                s = TimeSpan.FromSeconds((double)Score).ToString(@"m\:ss\.fff");
                 if (Completion == Completion.Finished)
                 {
                     s += " (finished)";
@@ -59,7 +59,7 @@ namespace ASRT_BoostLeagueAssistant
             return s;
         }
 
-        public static string TruncatedDecimalString(double n, int dp)
+        public static string TruncatedDecimalString(decimal n, int dp)
         {
             string num = n.ToString();
             int point = num.IndexOf('.');

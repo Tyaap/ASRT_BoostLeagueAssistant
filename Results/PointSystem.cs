@@ -17,7 +17,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                         break;
                     }
                 }
-                rec.Points = 10 - 9 * (double)(n - 1) / (compRecs.Count - 1);
+                rec.Points = 10 - 9 * (decimal)(n - 1) / (compRecs.Count - 1);
             }
             else
             {

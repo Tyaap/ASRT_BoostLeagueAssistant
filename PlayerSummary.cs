@@ -4,14 +4,14 @@
     {
         public int rank;
         public string name;
-        public double[] points; // either individual tracks, or frequency data
+        public decimal[] points; // either individual tracks, or frequency data
         public int[] positions; // either individual tracks, or frequency data   
-        public double totalPoints;
-        public double totalPositions;
+        public decimal totalPoints;
+        public int totalPositions;
         public int nTracks;
 
         // Multi-matchday info
-        public double totalPointsOld; // change in points since last matchday
+        public decimal totalPointsOld; // change in points since last matchday
         public int rankOld; // change in rank since last matchday
         public int parts; // participations
         public int[] wins; // matchday overall positions
