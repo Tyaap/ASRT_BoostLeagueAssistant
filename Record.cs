@@ -37,11 +37,11 @@ namespace ASRT_BoostLeagueAssistant
             {
                 if (Completion != Completion.DNF)
                 {
-                    s = TimeSpan.FromSeconds((double)Score).ToString(@"m\:ss\.fff");
+                    s = TruncatedTimeString(Score, -1);
                 }
                 else if (Score <= 100 && Score >= 0)
                 {
-                    s = TruncatedDecimalString(Score, 1) + "% (DNF)";
+                    s = TruncatedNumString(Score.ToString(), 1) + "% (DNF)";
                 }
                 else
                 {
@@ -50,7 +50,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             else
             {
-                s = TimeSpan.FromSeconds((double)Score).ToString(@"m\:ss\.fff");
+                s = TruncatedTimeString(Score, -1);
                 if (Completion == Completion.Finished)
                 {
                     s += " (finished)";
@@ -59,21 +59,41 @@ namespace ASRT_BoostLeagueAssistant
             return s;
         }
 
-        public static string TruncatedDecimalString(decimal n, int dp)
+        public static string TruncatedTimeString(decimal time, int dp)
         {
-            string num = n.ToString();
-            int point = num.IndexOf('.');
-            if (point == -1 || point + dp + 1 > num.Length)
+            string s = ((int)time / 60) + ":" + ((int)time % 60).ToString("00");
+            if (dp == 0)
             {
-                return num;
+                return s;
+            }
+            string tmp = TruncatedNumString(time.ToString(), dp);
+            int point = tmp.IndexOf('.');
+            if (point == -1)
+            {
+                return s;
+            }
+            return s + tmp.Substring(point);
+        }
+
+        public static string TruncatedNumString(string s, int dp)
+        {
+            if (dp < 0)
+            {
+                return s;
+            }
+            int point = s.IndexOf('.');
+            int numLen = point + dp + 1;
+            if (point == -1 || numLen > s.Length)
+            {
+                return s;
             }
             else if (dp == 0)
             {
-                return num.Substring(0, point);
+                return s.Substring(0, point);
             }
             else
             {
-                return num.Substring(0, point + dp + 1).TrimEnd('0').TrimEnd('.');
+                return s.Substring(0, numLen).TrimEnd('0').TrimEnd('.');
             }
         }
 
