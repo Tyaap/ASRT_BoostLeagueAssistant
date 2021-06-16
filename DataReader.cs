@@ -33,14 +33,14 @@ namespace ASRT_BoostLeagueAssistant
                         string[] playerFiles = Directory.GetFiles(lobbyDir, "Players*.txt");
                         if (playerFiles.Length > 0)
                         {
-                            players = ReadPlayersByName(playerFiles[0]);
+                            players = ReadPlayersByName(playerFiles[0].Replace('\\', '/'));
                         }
                         string lobbyName = Path.GetFileName(lobbyDir);
                         if (roa.TryGetValue((matchday, lobbyName), out int roaPlaneLaps))
                         {
                             roa.Remove((matchday, lobbyName));
                         }
-                        ReadLog(logFiles[0], year, matchday, lobbyName, players, names, roaPlaneLaps, allData);
+                        ReadLog(logFiles[0].Replace('\\', '/'), year, matchday, lobbyName, players, names, roaPlaneLaps, allData);
                     }
                     matchday++;
                     count++;
@@ -55,7 +55,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             foreach(var pair in roa)
             {
-                Console.WriteLine("Warning: " + path + "Config/RoA.txt contains MD#" + pair.Key.Item1 + " - " + pair.Key.Item2 + ", but no data was found!");
+                Console.WriteLine("Warning! " + path + "Config/RoA.txt contains MD#" + pair.Key.Item1 + " - " + pair.Key.Item2 + ", but no data was found!");
             }
             return (allData, counts);
         }
@@ -68,14 +68,14 @@ namespace ASRT_BoostLeagueAssistant
                 string[] elements = line.Split('\t');
                 if (elements.Length < 2)
                 {
-                    Console.WriteLine("Warning: " + path + " contains line with less than two elements: \"" + line + "\" (missing tab?)");
+                    Console.WriteLine("Warning! " + path + " contains line with less than two elements: \"" + line + "\" (missing tab?)");
                     continue;
                 }
                 if (!ulong.TryParse(elements[1], out ulong steamId))
                 {
                     if (elements[1] != "Steam ID") // This is the column name, so don't show a warning 
                     {
-                        Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                        Console.WriteLine("Warning! " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
                     }
                     continue;
                 }
@@ -92,14 +92,14 @@ namespace ASRT_BoostLeagueAssistant
                 string[] elements = line.Split('\t');
                 if (elements.Length < 2)
                 {
-                    Console.WriteLine("Warning: " + path + " contains line with less than two elements: \"" + line + "\" (missing tab?)");
+                    Console.WriteLine("Warning! " + path + " contains line with less than two elements: \"" + line + "\" (missing tab?)");
                     continue;
                 }
                 if (!ulong.TryParse(elements[1], out ulong steamId))
                 {
                     if (elements[1] != "Steam ID") // This is the column name, so don't show a warning 
                     {
-                        Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                        Console.WriteLine("Warning! " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
                     }
                     continue;
                 }
@@ -116,20 +116,20 @@ namespace ASRT_BoostLeagueAssistant
                 string[] elements = line.Split('\t');
                 if (elements.Length < 3)
                 {
-                    Console.WriteLine("Warning: " + path + " contains a line with less than three elements: \"" + line + "\" (missing tab?)");
+                    Console.WriteLine("Warning! " + path + " contains a line with less than three elements: \"" + line + "\" (missing tab?)");
                     continue;
                 }
                 if (!int.TryParse(elements[0], out int matchDay))
                 {
                     if (elements[0] != "Matchday") // This is the column name, so don't show a warning 
                     {
-                        Console.WriteLine("Warning: " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
+                        Console.WriteLine("Warning! " + path + " contains invalid Steam ID: \"" + elements[1] + "\"");
                     }
                     continue;
                 }
                 if (!int.TryParse(elements[2], out int planeLaps))
                 {
-                    Console.WriteLine("Warning: " + path + " contains an invalid number of plane laps: \"" + elements[2] + "\"");
+                    Console.WriteLine("Warning! " + path + " contains an invalid number of plane laps: \"" + elements[2] + "\"");
                     continue;
                 }
                 roa[(matchDay, elements[1])] = planeLaps;
@@ -137,9 +137,9 @@ namespace ASRT_BoostLeagueAssistant
             return roa;
         }
 
-        public static void ReadLog(string path, int year, int matchday, string lobbyName, Dictionary<string,ulong> players, Dictionary<ulong, string> names, int roaPlaneLaps, List<Record> allData)
+        public static void ReadLog(string path, int year, int matchday, string lobbyName, Dictionary<string,ulong> players, Dictionary<ulong, string> names, int roaPlaneLaps, List<Record> allData, bool checkMapData = true)
         {
-            string fileName = Path.GetFileNameWithoutExtension(path);
+            HashSet<Map> mapsWithData = new HashSet<Map>();
             string[] lines = File.ReadAllLines(path);
             int nLines = lines.Length;
             Map map = 0;
@@ -154,13 +154,13 @@ namespace ASRT_BoostLeagueAssistant
                     // Found a new event description
                     string[] eventElements = lines[i - 1].Split('\t');
                     int nElements = eventElements.Length;
-                    map = nElements >= 1 ? StringToMap(eventElements[0], fileName) : 0;
+                    map = nElements >= 1 ? StringToMap(eventElements[0], path) : 0;
                     if (map == Map.RaceOfAges && roaPlaneLaps > 0)
                     {
                         map = (Map)((uint)Map.RaceOfAges + roaPlaneLaps);
                     }
-                    eventType = nElements >= 2 ? StringToEvent(eventElements[1], fileName) : 0;
-                    eventTime = nElements >= 3 ? StringToDateTime(eventElements[2], fileName) : DateTime.MinValue;
+                    eventType = nElements >= 2 ? StringToEvent(eventElements[1], path) : 0;
+                    eventTime = nElements >= 3 ? StringToDateTime(eventElements[2], path) : DateTime.MinValue;
                     eventNum++;
                 }
                 else
@@ -170,7 +170,7 @@ namespace ASRT_BoostLeagueAssistant
                     if (nElements >= 4 && elements[3] != "")
                     {
                         // Found a new result
-                        int position = StringToPosition(elements[0], fileName);
+                        int position = StringToPosition(elements[0], path);
                         decimal score;
                         Completion completion;
                         bool usedExploit = false;
@@ -182,7 +182,7 @@ namespace ASRT_BoostLeagueAssistant
                                 usedExploit = true;
                                 scoreStr = scoreStr.TrimEnd('*');
                             }
-                            score = StringToTime(scoreStr, fileName);
+                            score = StringToTime(scoreStr, path);
                             completion = Completion.Finished;
                         }
                         else if (scoreStr == "DNF")
@@ -192,16 +192,16 @@ namespace ASRT_BoostLeagueAssistant
                         }
                         else if (scoreStr.Contains('%'))
                         {
-                            score = StringToDNFPercent(scoreStr, fileName);
+                            score = StringToDNFPercent(scoreStr, path);
                             completion = Completion.DNF;
                         }
                         else
                         {
-                            score = StringToGeneralScore(scoreStr, fileName);
+                            score = StringToGeneralScore(scoreStr, path);
                             completion = Completion.Finished;
                         }
-                        Character character = StringToCharacter(elements[3], fileName);
-                        decimal points = nElements >= 5 ? StringToPoints(elements[4], fileName) : 0;
+                        Character character = StringToCharacter(elements[3], path);
+                        decimal points = nElements >= 5 ? StringToPoints(elements[4], path) : 0;
                         string name = elements[1];
                         if (players == null || !players.TryGetValue(name, out ulong steamId))
                         {
@@ -229,8 +229,23 @@ namespace ASRT_BoostLeagueAssistant
                             Points = points,
                             UsedExploit = usedExploit
                         });
+                        if (checkMapData)
+                        {
+                            mapsWithData.Add(map);
+                        }
                     }
                 }   
+            }
+            if (checkMapData)
+            {
+                foreach (Map m in Indexing.mapOrder)
+                {
+                    if ((m != Map.RaceOfAges && !mapsWithData.Contains(m)) ||
+                        !mapsWithData.Contains((Map)((uint)Map.RaceOfAges + roaPlaneLaps)))
+                    {
+                        Console.WriteLine("Warning! " + path + " is missing data for: " + m.GetDescription());
+                    }
+                }
             }
         }
 
@@ -242,7 +257,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid map name in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " contains invalid map name: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid map name in " + sessionName + ":\n" +
@@ -263,7 +278,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid event type in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " contains invalid event type: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid event type in " + sessionName + ":\n" +
@@ -284,7 +299,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid event date/time in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " containt invalid event date/time: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid event date/time in " + sessionName + ":\n" +
@@ -305,7 +320,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid player position in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + "contains invalid player position: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player position in " + sessionName + ":\n" +
@@ -326,7 +341,7 @@ namespace ASRT_BoostLeagueAssistant
                 decimal seconds = decimal.Parse(timeParts[1]);
                 if (seconds > 60 || minutes > 60)
                 {
-                    Console.WriteLine("Warning: Player time with minutes/seconds larger than sixty in " + sessionName + ": " + s);
+                    Console.WriteLine("Warning! " + sessionName + "contains time with minutes/seconds larger than sixty: " + s);
                     /*
                     MessageBox.Show(
                         "Player time with minutes/seconds larger than sixty: " + s,
@@ -337,7 +352,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid player time in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " contains invalid time: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player time in " + sessionName + ":\n" +
@@ -357,7 +372,7 @@ namespace ASRT_BoostLeagueAssistant
                 decimal percent = Math.Min(100, decimal.Parse(s.Split('%')[0]));
                 if (percent < 0 || percent > 100)
                 {
-                    Console.WriteLine("Warning: Player DNF percentage outside expected range in " + sessionName + ": " + s);
+                    Console.WriteLine("Warning! " + sessionName + " contains DNF percentage outside normal range: " + s);
                     /*
                     MessageBox.Show(
                         "Player DNF percentage outside expected range in  " + s,
@@ -368,7 +383,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid player DNF percentage in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " contains invalid DNF percentage : " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player DNF percentage in " + sessionName + ":\n" +
@@ -389,7 +404,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid player score in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " contains invalid player score: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player score in " + sessionName + ":\n" +
@@ -409,7 +424,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid character name in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " contains invalid character name: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid character name in " + sessionName + ":\n" +
@@ -430,7 +445,7 @@ namespace ASRT_BoostLeagueAssistant
             }
             catch
             {
-                Console.WriteLine("Warning: Invalid player points in " + sessionName + ": " + s);
+                Console.WriteLine("Warning! " + sessionName + " contains invalid points: " + s);
                 /*
                 MessageBox.Show(
                     "Invalid player points in " + sessionName + ":\n" +
@@ -450,7 +465,6 @@ namespace ASRT_BoostLeagueAssistant
                 x *= 0x1000193;
                 x ^= c;
             }
-
             return x;
         }
     }
