@@ -231,7 +231,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                     {
                         if (points != 0)
                         {
-                            table[r, c] = Record.TruncatedNumString(points.ToString(), -1);
+                            table[r, c] = Record.TruncatedNumString(points.ToString(), 3);
                         }
                         c++;
                     }
@@ -251,7 +251,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                 }
                 if (hasTotalPoints)
                 {
-                    table[r, c++] = Record.TruncatedNumString(playerSummary.totalPoints.ToString(), -1);
+                    table[r, c++] = Record.TruncatedNumString(playerSummary.totalPoints.ToString(), 3);
                 }
                 if (hasOldTotalPoints)
                 {
@@ -267,7 +267,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                 }
                 if (hasTotalPoints && hasTracks)
                 {
-                    table[r, c++] = Record.TruncatedNumString((playerSummary.totalPoints / playerSummary.nTracks * 10).ToString(), -1);
+                    table[r, c++] = Record.TruncatedNumString((playerSummary.totalPoints / playerSummary.nTracks * 10).ToString(), 3);
                 }
                 if (hasParts)
                 {

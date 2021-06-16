@@ -171,7 +171,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                 table[r, c++] = rec.Character.GetDescription();
                 if (showPoints)
                 {
-                    table[r, c++] = Record.TruncatedNumString(rec.Points.ToString(), -1);
+                    table[r, c++] = Record.TruncatedNumString(rec.Points.ToString(), 3);
                 }
                 c -= nColumns;
             }
