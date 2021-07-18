@@ -19,6 +19,7 @@ namespace ASRT_BoostLeagueAssistant
         public decimal Score;
         public int Position;
         public decimal Points;
+        public decimal Bonus;
         public bool UsedExploit;
 
 

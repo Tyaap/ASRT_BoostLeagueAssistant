@@ -14,7 +14,8 @@ namespace ASRT_BoostLeagueAssistant
             Map.SunshineTour, Map.ShibuyaDowntown, Map.RouletteRoad, Map.EggHangar,
             Map.OutrunBay };
 
-        public static Dictionary<int, Dictionary<Map, List<Record>>> MdToMapToRecords(List<Record> data, EventType eventType = EventType.BoostRace, bool onlyValidTimes = true)
+        public static Dictionary<int, Dictionary<Map, List<Record>>> MdToMapToRecords(List<Record> data, EventType eventType = EventType.BoostRace, 
+            bool onlyValidTimes = true, bool mergeRoAs = true)
         {
             Dictionary<int, Dictionary<Map, List<Record>>> mdGroups = new Dictionary<int, Dictionary<Map, List<Record>>>();
             foreach (Record rec in data)
@@ -23,7 +24,15 @@ namespace ASRT_BoostLeagueAssistant
                 {
                     continue;
                 }
-                AddRecord(mdGroups, rec);
+                if (mergeRoAs && (rec.Map == Map.RaceOfAgesAlt1 || rec.Map == Map.RaceOfAgesAlt2 || rec.Map == Map.RaceOfAgesAlt3))
+                {
+                    AddRecord(mdGroups, rec, map: Map.RaceOfAges);
+                    //rec.Map = Map.RaceOfAges; // caution - lose distinction between RoAs - only do this after calculating points
+                }
+                else
+                {
+                    AddRecord(mdGroups, rec);
+                }
             }
             return mdGroups;
         }
@@ -38,11 +47,15 @@ namespace ASRT_BoostLeagueAssistant
                 {
                     continue;
                 }
-                if (mergeRoAs && rec.Map == Map.RaceOfAgesAlt1 || rec.Map == Map.RaceOfAgesAlt2 || rec.Map == Map.RaceOfAgesAlt3)
+                if (mergeRoAs && (rec.Map == Map.RaceOfAgesAlt1 || rec.Map == Map.RaceOfAgesAlt2 || rec.Map == Map.RaceOfAgesAlt3))
                 {
-                    rec.Map = Map.RaceOfAges; // caution - lose distinction between RoAs - only do this after calculating points
+                    AddRecord(mdGroups, rec, map: Map.RaceOfAges);
+                    //rec.Map = Map.RaceOfAges; // caution - lose distinction between RoAs - only do this after calculating points
                 }
-                AddRecord(mdGroups, rec);
+                else
+                {
+                    AddRecord(mdGroups, rec);
+                }
             }
             return mdGroups;
         }
@@ -64,6 +77,25 @@ namespace ASRT_BoostLeagueAssistant
             }
             return mdIntegral;
         }
+
+        public static Dictionary<ulong, Dictionary<Map, List<Record>>> SteamIdMapToRecords(List<Record> data, EventType eventType = EventType.BoostRace,
+            bool onlyValidTimes = false, bool mergeRoAs = true)
+        {
+            Dictionary<ulong, Dictionary<Map, List<Record>>> recsByPlayer = new Dictionary<ulong, Dictionary<Map, List<Record>>>();
+            foreach (Record rec in data)
+            {
+                if (rec.EventType != eventType || (onlyValidTimes && (rec.UsedExploit || rec.Completion != Completion.Finished))) // filter out unwanted records
+                {
+                    continue;
+                }
+                if (mergeRoAs && rec.Map == Map.RaceOfAgesAlt1 || rec.Map == Map.RaceOfAgesAlt2 || rec.Map == Map.RaceOfAgesAlt3)
+                {
+                    rec.Map = Map.RaceOfAges; // caution - lose distinction between RoAs - only do this after calculating points
+                }
+                AddRecord(recsByPlayer, rec);
+            }
+            return recsByPlayer;
+        }        
 
         public static Record[] RecordDictToList(Dictionary<ulong, Record> recDict) // list is sorted by the record positions
         {
@@ -145,7 +177,7 @@ namespace ASRT_BoostLeagueAssistant
             {
                 steamId = rec.SteamID;
             }
-            if (!mapGroup.TryGetValue(steamId, out Record rec2) || Record.ComparePoints(rec, rec2) > 0)
+            if (!mapGroup.TryGetValue(steamId, out Record rec2) || Record.ComparePoints(rec, rec2) > 0) // add if does not exist, or is better than the existing record
             {
                 mapGroup[steamId] = rec;
             }
@@ -165,18 +197,32 @@ namespace ASRT_BoostLeagueAssistant
             AddRecord(mdGroup, rec, map);
         }
 
-        public static void AddRecord(Dictionary<Map, List<Record>> mdGroup, Record rec, Map map = 0)
+        public static void AddRecord(Dictionary<Map, List<Record>> mapToRecs, Record rec, Map map = 0)
         {
             if (map == 0)
             {
                 map = rec.Map;
             }
-            if (!mdGroup.TryGetValue(map, out List<Record> mapGroup))
+            if (!mapToRecs.TryGetValue(map, out List<Record> recs))
             {
-                mapGroup = new List<Record>();
-                mdGroup[map] = mapGroup;
+                recs = new List<Record>();
+                mapToRecs[map] = recs;
             }
-            mapGroup.Add(rec);
+            recs.Add(rec);
+        }
+
+        public static void AddRecord(Dictionary<ulong, Dictionary<Map, List<Record>>> recsByPlayer, Record rec, ulong steamId = 0, Map map = 0)
+        {
+            if (steamId == 0)
+            {
+                steamId = rec.SteamID;
+            }
+            if (!recsByPlayer.TryGetValue(steamId, out Dictionary<Map, List<Record>> mapToRecs))
+            {
+                mapToRecs = new Dictionary<Map, List<Record>>();
+                recsByPlayer[steamId] = mapToRecs;
+            }
+            AddRecord(mapToRecs, rec, map);
         }
     }
 }

@@ -83,22 +83,29 @@ namespace ASRT_BoostLeagueAssistant.Results
         {
             foreach (Dictionary<ulong, Record> mapResults in matchdayResults)
             {
+                /*
                 Record rec = BestValidScore(mapResults);
                 if (rec == null)
                 {
                     continue;
                 }
-                if (!bestScoreProgression.TryGetValue(rec.Map, out List<Record> mapGroup))
+                */
+                foreach (Record rec in mapResults.Values)
                 {
-                    bestScoreProgression[rec.Map] = new List<Record>() { rec };
-                }
-                else if (Record.CompareScores(rec, mapGroup[0]) < 0)
-                {
-                    mapGroup.Insert(0, rec);
+
+                    if (!bestScoreProgression.TryGetValue(rec.Map, out List<Record> mapGroup))
+                    {
+                        bestScoreProgression[rec.Map] = new List<Record>() { rec };
+                    }
+                    else if (Record.CompareScores(rec, mapGroup[0]) < 0)
+                    {
+                        mapGroup.Insert(0, rec);
+                    }
                 }
             }
         }
 
+        /*
         public static Record BestValidScore(Dictionary<ulong, Record> recs) // assumes records have updated positions
         {
             Record recBest = null;
@@ -115,6 +122,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             }
             return recBest;
         }
+        */
 
         public static List<List<Record>> OrderedProgressionResults(Dictionary<Map, List<Record>> bestScoreProgression, IEnumerable<Map> mapOrder = null)
         {

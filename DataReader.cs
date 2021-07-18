@@ -8,12 +8,12 @@ namespace ASRT_BoostLeagueAssistant
 {
     public class DataReader
     {
-        public static (List<Record>, List<(int, int)>) ReadLogs(string path)
+        public static (List<Record>, int, List<(int, int)>) ReadLogs(string path)
         {
             Dictionary<(int, string), int> roa = ReadRoA(path + "Config/RoA.txt");
             Dictionary<ulong, string> names = ReadPlayersBySteamID(path + "Config/Names.txt");
             List<Record> allData = new List<Record>();
-            List<(int, int)> counts = new List<(int, int)>();
+            List<(int, int)> yearMdCounts = new List<(int, int)>();
             int year = 2020;
             int matchday = 1;
             while (Directory.Exists(path + year))
@@ -45,7 +45,7 @@ namespace ASRT_BoostLeagueAssistant
                     matchday++;
                     count++;
                 }
-                counts.Add((year, count));
+                yearMdCounts.Add((year, count));
                 year++;       
             }
             int i = 0;
@@ -57,7 +57,7 @@ namespace ASRT_BoostLeagueAssistant
             {
                 Console.WriteLine("Warning! " + path + "Config/RoA.txt contains MD#" + pair.Key.Item1 + " - " + pair.Key.Item2 + ", but no data was found!");
             }
-            return (allData, counts);
+            return (allData, matchday - 1, yearMdCounts);
         }
 
         public static Dictionary<string,ulong> ReadPlayersByName(string path)

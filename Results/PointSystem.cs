@@ -1,23 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ASRT_BoostLeagueAssistant.Results
 {
     class PointSystem
     {
-        public static void CalculatePoints(Record rec, List<Record> compRecs) // compRecs must be sorted by score from smallest to largest
+        public static void CalculatePoints(Record rec, List<Record> allRecs, List<Record> playerRecs) // compRecs must be sorted by score from smallest to largest
         {
             if (rec.Completion == Completion.Finished)
             {
-                int n = 0;
-                foreach (Record compRec in compRecs)
+                int nAll = CountRecsBeaten(rec, allRecs);
+                int nPlayer = CountRecsBeaten(rec, playerRecs);
+                decimal f = allRecs.Count <= 1 ? 0 : 1 - (decimal)nAll / (allRecs.Count - 1);           // generic track CDF
+                decimal g = playerRecs.Count <= 1 ? 0 : 1 - (decimal)nPlayer / (playerRecs.Count - 1);  // player track CDF
+                rec.Points = 1 + 9 * f;
+                if (!rec.UsedExploit) // no bonus for times that used exploits!
                 {
-                    n++;
-                    if (rec.Score <= compRec.Score)
-                    {
-                        break;
-                    }
-                }
-                rec.Points = 10 - 9 * (decimal)(n - 1) / (compRecs.Count - 1);
+                    rec.Bonus =  8 * Math.Max(0, g + (f - g) / (decimal)Math.Sqrt(playerRecs.Count) - 0.5m);
+                }         
             }
             else
             {
@@ -25,23 +26,76 @@ namespace ASRT_BoostLeagueAssistant.Results
             }
         }
 
-        public static void CalculatePoints(List<Record> data)
+        public static int CountRecsBeaten(Record rec, List<Record> recsToBeat)
         {
-            Dictionary<int, Dictionary<Map, List<Record>>> mdGroups = Indexing.MdToMapToRecords(data, onlyValidTimes: false);
-            Dictionary<int, Dictionary<Map, List<Record>>> mdIntegral = Indexing.MdToMapToMdIntegral(data, onlyValidTimes: true);
-
-            foreach(int matchday in mdGroups.Keys)
+            int n = 0;
+            foreach (Record recToBeat in recsToBeat)
             {
-                foreach(Map map in mdGroups[matchday].Keys)
+                if (rec.Score <= recToBeat.Score)
                 {
-                    List<Record> mapResults = mdGroups[matchday][map];
-                    List<Record> integral = mdIntegral[matchday][map];
-                    integral.Sort((x, y) => x.Score.CompareTo(y.Score)); // order times from smallest to largest
-                    foreach (Record rec in mapResults)
-                    {
-                        CalculatePoints(rec, integral);
-                    }
+                    return n;
                 }
+                n++;
+            }
+            return n;
+        }
+
+
+        // adds the new matchday records to the cumulative records (and resorts)
+        // then calculates points for new records
+        public static void AddAndCalcPoints(Dictionary<Map, List<Record>> newRecs, 
+            Dictionary<Map, List<Record>> mapToRecs,                             // point calculations
+            Dictionary<Map, Dictionary<ulong, List<Record>>> mapToSteamIdToRecs, // bonus point calculations
+            bool onlyAddValidTimes = true)
+        {
+            foreach (var pair in newRecs)
+            {
+                if (!mapToRecs.TryGetValue(pair.Key, out List<Record> recs))
+                {
+                    recs = new List<Record>();
+                    mapToRecs[pair.Key] = recs;
+                }
+                if (!mapToSteamIdToRecs.TryGetValue(pair.Key, out Dictionary<ulong, List<Record>> steamIdToRecs))
+                {
+                    steamIdToRecs = new Dictionary<ulong, List<Record>>();
+                    mapToSteamIdToRecs = new Dictionary<Map, Dictionary<ulong, List<Record>>>();
+                }
+                AddAndCalcPoints(pair.Value, recs, steamIdToRecs);
+            }
+        }
+
+        public static void AddAndCalcPoints(List<Record> newRecs, 
+            List<Record> allRecs,
+            Dictionary<ulong, List<Record>> playerGroupedRecs,
+            bool onlyAddValidTimes = true)
+        {
+            // add time
+            if (onlyAddValidTimes)
+            {
+                allRecs.AddRange(newRecs.FindAll(rec => !rec.UsedExploit && rec.Completion == Completion.Finished));
+            }
+            else
+            {
+                allRecs.AddRange(newRecs);
+            }
+            allRecs.Sort((x, y) => x.Score.CompareTo(y.Score)); // order times from smallest to largest
+
+            foreach(Record rec in newRecs)
+            {
+                // add time to player group
+                if (!playerGroupedRecs.TryGetValue(rec.SteamID, out List<Record> playerRecs))
+                {
+                    playerRecs = new List<Record>();
+                    playerGroupedRecs[rec.SteamID] = playerRecs;
+                }
+                if (!onlyAddValidTimes || (!rec.UsedExploit && rec.Completion == Completion.Finished))
+                {
+                    playerRecs.Add(rec);
+                    playerRecs.Sort((x, y) => x.Score.CompareTo(y.Score));
+                }
+
+                // calculate points
+                CalculatePoints(rec, allRecs, playerRecs);
             }
         }
     }
