@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace ASRT_BoostLeagueAssistant.Results
 {
@@ -16,7 +15,7 @@ namespace ASRT_BoostLeagueAssistant.Results
 
         public static Dictionary<Map, Dictionary<ulong, Record>> PlayerBestScores(IEnumerable<IEnumerable<Dictionary<ulong, Record>>> results) // results[matchday index][map index][steam ID] = record
         {
-            Dictionary<Map, Dictionary<ulong, Record>> playerBestScores = new Dictionary<Map, Dictionary<ulong, Record>>();
+            Dictionary<Map, Dictionary<ulong, Record>> playerBestScores = new();
             foreach (var matchdayResults in results)
             {
                 UpdatePlayerBestScores(playerBestScores, matchdayResults);
@@ -130,7 +129,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             {
                 mapOrder = BestScores.mapOrder;
             }
-            List<List<Record>> orderedResults = new List<List<Record>>();
+            List<List<Record>> orderedResults = new();
             foreach (Map map in mapOrder)
             {
                 if (!bestScoreProgression.TryGetValue(map, out List<Record> results))
@@ -144,8 +143,7 @@ namespace ASRT_BoostLeagueAssistant.Results
 
         public static Dictionary<ulong, PlayerSummary> PlayerBestScoresSummary(IEnumerable<Dictionary<ulong, Record>> results, int nPositions = 20)
         {
-            Dictionary<ulong, PlayerSummary> summary = new Dictionary<ulong, PlayerSummary>();
-            int nEvents = results.Count();
+            Dictionary<ulong, PlayerSummary> summary = new();
             int i = 0;
             foreach (Dictionary<ulong, Record> mapBestScores in results)
             {
@@ -164,7 +162,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                     {
                         playerSummary.positions[rec.Position - 1]++;
                         playerSummary.totalPositions += rec.Position;
-                        playerSummary.totalPoints += 21 - rec.Position;                  
+                        playerSummary.totalPoints += 21 - rec.Position;
                     }
                     if (rec.OldPosition > 0 && rec.OldPosition <= nPositions)
                     {

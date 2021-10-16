@@ -1,6 +1,6 @@
+using ASRT_BoostLeagueAssistant.Results;
 using System;
 using System.Collections.Generic;
-using ASRT_BoostLeagueAssistant.Results;
 
 namespace ASRT_BoostLeagueAssistant
 {
@@ -39,7 +39,7 @@ namespace ASRT_BoostLeagueAssistant
             {
                 (allData, allMdCount, yearMdCounts) = DataReader.ReadLogs(root);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(
                     "Error loading data!\n" + e.Message + "\n" +
@@ -60,26 +60,26 @@ namespace ASRT_BoostLeagueAssistant
             int matchday = 0;
             Dictionary<int, Dictionary<Map, Dictionary<ulong, Record>>> mdToMapToSteamIdToRec = Indexing.MdToMapToSteamIdToRecord(allData);
             Dictionary<int, Dictionary<Map, List<Record>>> mdToMapToRecs = Indexing.MdToMapToRecords(allData, mergeRoAs: false);
-            
+
             // cumulative data for calculating points
-            Dictionary<Map, List<Record>> mapToCRecs = new Dictionary<Map, List<Record>>();
-            Dictionary<Map, Dictionary<ulong, List<Record>>> mapToSteamIdToCRecs = new Dictionary<Map, Dictionary<ulong, List<Record>>>();
-            
+            Dictionary<Map, List<Record>> mapToCRecs = new();
+            Dictionary<Map, Dictionary<ulong, List<Record>>> mapToSteamIdToCRecs = new();
+
             // cumulative data for yearly/all-time summary
-            Dictionary<Map, Dictionary<ulong, Record>> playerBestScores = new Dictionary<Map, Dictionary<ulong, Record>>();
-            Dictionary<Map, List<Record>> bestScoreProgression = new Dictionary<Map, List<Record>>();
+            Dictionary<Map, Dictionary<ulong, Record>> playerBestScores = new();
+            Dictionary<Map, List<Record>> bestScoreProgression = new();
             IEnumerable<ulong> lastMatchdaySteamIds = null;
-            
+
             foreach ((int, int) yearMdCount in yearMdCounts) // (year, matchday count)
             {
-                Dictionary<ulong, PlayerSummary> yearSummary = new Dictionary<ulong, PlayerSummary>();
+                Dictionary<ulong, PlayerSummary> yearSummary = new();
                 for (int i = 0; i < yearMdCount.Item2; i++)
                 {
                     string matchdayDir = root + yearMdCount.Item1 + "/MD#" + ++matchday;
-                    
+
                     // Matchday points
                     PointSystem.AddAndCalcPoints(mdToMapToRecs[matchday], mapToCRecs, mapToSteamIdToCRecs);
-                    
+
                     // Matchday details table
                     Console.WriteLine(matchdayDir + "/MD#" + matchday + "_Details.txt");
                     List<Dictionary<ulong, Record>> results = Details.OrderedMapResults(mdToMapToSteamIdToRec[matchday]);
@@ -126,12 +126,13 @@ namespace ASRT_BoostLeagueAssistant
                 yearSummaryPositions.ToFile(yearDir + "/" + yearMdCount.Item1 + "_Summary_Positions.txt");
             }
 
+
             // All-time best score details table
             Console.WriteLine(root + "AllTime_BestScores_Details.txt");
             List<Dictionary<ulong, Record>> bestScoreResults = Details.OrderedMapResults(playerBestScores, updatePositions: false);
-            Table bestScoresDetails = Details.MakeDetailsTable(bestScoreResults, eventsPerRow: 4, nResults: 20, showMatchdays: false, showPositions: true, showPosDeltas: true, showPoints: false);
+            Table bestScoresDetails = Details.MakeDetailsTable(bestScoreResults, eventsPerRow: 4, nResults: 20, showMatchdays: false, showPositions: true, showPosDeltas: true, showPoints: false, showBonus: false);
             bestScoresDetails.ToFile(root + "AllTime_BestScores_Details.txt");
-            
+
             // All-time best score summary table
             Console.WriteLine(root + "AllTime_BestScores_Summary.txt");
             Dictionary<ulong, PlayerSummary> bestScoresSummary = BestScores.PlayerBestScoresSummary(bestScoreResults, nPositions: 20);
@@ -140,17 +141,27 @@ namespace ASRT_BoostLeagueAssistant
             Summary.ShowDeltas(bestScoresSummary, lastMatchdaySteamIds, pointDelta: true, rankDelta: true);
             Table bestScoresSummaryPositions = Summary.MakeSummaryTable(bestScoresSummary, "Overall Ranks", frequencyData: true, usePoints: false);
             bestScoresSummaryPositions.ToFile(root + "AllTime_BestScores_Summary.txt");
-            
+
             // All-time best score progress table
             Console.WriteLine(root + "AllTime_BestScores_Progress.txt");
             List<List<Record>> bestProgressionResults = Details.OrderedMapResults(bestScoreProgression, recordComp: Record.CompareScores);
-            Table bestScoresProgressionDetails = Details.MakeDetailsTable(bestProgressionResults, eventsPerRow: 4, showMatchdays: true, showPositions: false, showPoints: false);
+            Table bestScoresProgressionDetails = Details.MakeDetailsTable(bestProgressionResults, eventsPerRow: 4, showMatchdays: true, showPositions: false, showPoints: false, showBonus: false);
             bestScoresProgressionDetails.ToFile(root + "AllTime_BestScores_Progress.txt");
 
             // Test tables
             //Dictionary<ulong, Dictionary<Map, List<Record>>> recsByPlayer = Indexing.SteamIdMapToRecords(allData, mergeRoAs: false);
             //Table testTable = Details.MakeDetailsTable(recsByPlayer[76561198347259925].Values, eventsPerRow: 23, showPositions: false);
             //testTable.ToFile("piero.txt");
+            
+            // Bonus info
+            /*
+            decimal total = 0;
+            foreach (Record rec in allData)
+            {
+                total += rec.Bonus;
+            }
+            Console.WriteLine("Bonus average: " + total / allData.Count);
+            */
 
             watch.Stop();
             Console.WriteLine(@"

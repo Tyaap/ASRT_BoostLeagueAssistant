@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -12,8 +11,8 @@ namespace ASRT_BoostLeagueAssistant
         {
             Dictionary<(int, string), int> roa = ReadRoA(path + "Config/RoA.txt");
             Dictionary<ulong, string> names = ReadPlayersBySteamID(path + "Config/Names.txt");
-            List<Record> allData = new List<Record>();
-            List<(int, int)> yearMdCounts = new List<(int, int)>();
+            List<Record> allData = new();
+            List<(int, int)> yearMdCounts = new();
             int year = 2020;
             int matchday = 1;
             while (Directory.Exists(path + year))
@@ -22,7 +21,7 @@ namespace ASRT_BoostLeagueAssistant
                 while (Directory.Exists(path + year + "/MD#" + matchday))
                 {
                     string[] lobbyDirs = Directory.GetDirectories(path + year + "/MD#" + matchday);
-                    foreach(string lobbyDir in lobbyDirs)
+                    foreach (string lobbyDir in lobbyDirs)
                     {
                         string[] logFiles = Directory.GetFiles(lobbyDir, "SessionEvents*.txt");
                         if (logFiles.Length == 0)
@@ -46,23 +45,23 @@ namespace ASRT_BoostLeagueAssistant
                     count++;
                 }
                 yearMdCounts.Add((year, count));
-                year++;       
+                year++;
             }
             int i = 0;
-            foreach(Record r in allData)
+            foreach (Record r in allData)
             {
                 r.Index = i++;
             }
-            foreach(var pair in roa)
+            foreach (var pair in roa)
             {
                 Console.WriteLine("Warning! " + path + "Config/RoA.txt contains MD#" + pair.Key.Item1 + " - " + pair.Key.Item2 + ", but no data was found!");
             }
             return (allData, matchday - 1, yearMdCounts);
         }
 
-        public static Dictionary<string,ulong> ReadPlayersByName(string path)
+        public static Dictionary<string, ulong> ReadPlayersByName(string path)
         {
-            Dictionary<string, ulong> players = new Dictionary<string, ulong>();
+            Dictionary<string, ulong> players = new();
             foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
@@ -86,7 +85,7 @@ namespace ASRT_BoostLeagueAssistant
 
         public static Dictionary<ulong, string> ReadPlayersBySteamID(string path)
         {
-            Dictionary<ulong, string> players = new Dictionary<ulong, string>();
+            Dictionary<ulong, string> players = new();
             foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
@@ -110,7 +109,7 @@ namespace ASRT_BoostLeagueAssistant
 
         public static Dictionary<(int, string), int> ReadRoA(string path)
         {
-            Dictionary<(int, string), int> roa = new Dictionary<(int, string), int>();
+            Dictionary<(int, string), int> roa = new();
             foreach (string line in File.ReadAllLines(path))
             {
                 string[] elements = line.Split('\t');
@@ -137,16 +136,16 @@ namespace ASRT_BoostLeagueAssistant
             return roa;
         }
 
-        public static void ReadLog(string path, int year, int matchday, string lobbyName, Dictionary<string,ulong> players, Dictionary<ulong, string> names, int roaPlaneLaps, List<Record> allData, bool checkMapData = true)
+        public static void ReadLog(string path, int year, int matchday, string lobbyName, Dictionary<string, ulong> players, Dictionary<ulong, string> names, int roaPlaneLaps, List<Record> allData, bool checkMapData = true)
         {
-            HashSet<Map> mapsWithData = new HashSet<Map>();
+            HashSet<Map> mapsWithData = new();
             string[] lines = File.ReadAllLines(path);
             int nLines = lines.Length;
             Map map = 0;
             EventType eventType = 0;
             DateTime eventTime = DateTime.MinValue;
             int eventNum = 0;
-            for(int i = 0; i < nLines; i++)
+            for (int i = 0; i < nLines; i++)
             {
                 string line = lines[i];
                 if (line.StartsWith("Position"))
@@ -174,32 +173,43 @@ namespace ASRT_BoostLeagueAssistant
                         decimal score;
                         Completion completion;
                         bool usedExploit = false;
-                        string scoreStr = elements[2];
-                        if (scoreStr.Contains(':'))
+                        if (nElements >= 6 && int.TryParse(elements[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int hex))
                         {
-                            if (scoreStr.EndsWith('*'))
-                            {
-                                usedExploit = true;
-                                scoreStr = scoreStr.TrimEnd('*');
-                            }
-                            score = StringToTime(scoreStr, path);
+                            Console.WriteLine("Got hex score!");
+                            score = (decimal)hex.ToFloat();
+                            Console.WriteLine("Score:" + score);
                             completion = Completion.Finished;
-                        }
-                        else if (scoreStr == "DNF")
-                        {
-                            score = decimal.MaxValue;
-                            completion = Completion.DNF;
-                        }
-                        else if (scoreStr.Contains('%'))
-                        {
-                            score = StringToDNFPercent(scoreStr, path);
-                            completion = Completion.DNF;
                         }
                         else
                         {
-                            score = StringToGeneralScore(scoreStr, path);
-                            completion = Completion.Finished;
+                            string scoreStr = elements[2];
+                            if (scoreStr.Contains(':'))
+                            {
+                                if (scoreStr.EndsWith('*'))
+                                {
+                                    usedExploit = true;
+                                    scoreStr = scoreStr.TrimEnd('*');
+                                }
+                                score = StringToTime(scoreStr, path);
+                                completion = Completion.Finished;
+                            }
+                            else if (scoreStr == "DNF")
+                            {
+                                score = decimal.MaxValue;
+                                completion = Completion.DNF;
+                            }
+                            else if (scoreStr.Contains('%'))
+                            {
+                                score = StringToDNFPercent(scoreStr, path);
+                                completion = Completion.DNF;
+                            }
+                            else
+                            {
+                                score = StringToGeneralScore(scoreStr, path);
+                                completion = Completion.Finished;
+                            }
                         }
+
                         Character character = StringToCharacter(elements[3], path);
                         decimal points = nElements >= 5 ? StringToPoints(elements[4], path) : 0;
                         string name = elements[1];
@@ -234,7 +244,7 @@ namespace ASRT_BoostLeagueAssistant
                             mapsWithData.Add(map);
                         }
                     }
-                }   
+                }
             }
             if (checkMapData)
             {
@@ -253,7 +263,7 @@ namespace ASRT_BoostLeagueAssistant
         {
             try
             {
-                return EnumExtensions.GetValueFromDescription<Map>(s);
+                return Extensions.GetValueFromDescription<Map>(s);
             }
             catch
             {
@@ -274,7 +284,7 @@ namespace ASRT_BoostLeagueAssistant
         {
             try
             {
-                return EnumExtensions.GetValueFromDescription<EventType>(s);
+                return Extensions.GetValueFromDescription<EventType>(s);
             }
             catch
             {
@@ -420,7 +430,7 @@ namespace ASRT_BoostLeagueAssistant
         {
             try
             {
-                return EnumExtensions.GetValueFromDescription<Character>(s);
+                return Extensions.GetValueFromDescription<Character>(s);
             }
             catch
             {

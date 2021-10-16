@@ -14,10 +14,10 @@ namespace ASRT_BoostLeagueAssistant
             Map.SunshineTour, Map.ShibuyaDowntown, Map.RouletteRoad, Map.EggHangar,
             Map.OutrunBay };
 
-        public static Dictionary<int, Dictionary<Map, List<Record>>> MdToMapToRecords(List<Record> data, EventType eventType = EventType.BoostRace, 
+        public static Dictionary<int, Dictionary<Map, List<Record>>> MdToMapToRecords(List<Record> data, EventType eventType = EventType.BoostRace,
             bool onlyValidTimes = true, bool mergeRoAs = true)
         {
-            Dictionary<int, Dictionary<Map, List<Record>>> mdGroups = new Dictionary<int, Dictionary<Map, List<Record>>>();
+            Dictionary<int, Dictionary<Map, List<Record>>> mdGroups = new();
             foreach (Record rec in data)
             {
                 if (rec.EventType != eventType || (onlyValidTimes && (rec.UsedExploit || rec.Completion != Completion.Finished))) // filter out unwanted records
@@ -40,7 +40,7 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<int, Dictionary<Map, Dictionary<ulong, Record>>> MdToMapToSteamIdToRecord(List<Record> data, EventType eventType = EventType.BoostRace,
             bool onlyValidTimes = false, bool mergeRoAs = true)
         {
-            Dictionary<int, Dictionary<Map, Dictionary<ulong, Record>>> mdGroups = new Dictionary<int, Dictionary<Map, Dictionary<ulong, Record>>>();
+            Dictionary<int, Dictionary<Map, Dictionary<ulong, Record>>> mdGroups = new();
             foreach (Record rec in data)
             {
                 if (rec.EventType != eventType || (onlyValidTimes && (rec.UsedExploit || rec.Completion != Completion.Finished))) // filter out unwanted records
@@ -63,7 +63,7 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<int, Dictionary<Map, List<Record>>> MdToMapToMdIntegral(List<Record> data, EventType eventType = EventType.BoostRace, bool onlyValidTimes = true)
         {
             int nMatchdays = data.Last().MatchDay;
-            Dictionary<int, Dictionary<Map, List<Record>>> mdIntegral = new Dictionary<int, Dictionary<Map, List<Record>>>();
+            Dictionary<int, Dictionary<Map, List<Record>>> mdIntegral = new();
             foreach (Record rec in data)
             {
                 if (rec.EventType != eventType || (onlyValidTimes && (rec.UsedExploit || rec.Completion != Completion.Finished))) // filter out unwanted records
@@ -81,7 +81,7 @@ namespace ASRT_BoostLeagueAssistant
         public static Dictionary<ulong, Dictionary<Map, List<Record>>> SteamIdMapToRecords(List<Record> data, EventType eventType = EventType.BoostRace,
             bool onlyValidTimes = false, bool mergeRoAs = true)
         {
-            Dictionary<ulong, Dictionary<Map, List<Record>>> recsByPlayer = new Dictionary<ulong, Dictionary<Map, List<Record>>>();
+            Dictionary<ulong, Dictionary<Map, List<Record>>> recsByPlayer = new();
             foreach (Record rec in data)
             {
                 if (rec.EventType != eventType || (onlyValidTimes && (rec.UsedExploit || rec.Completion != Completion.Finished))) // filter out unwanted records
@@ -95,7 +95,7 @@ namespace ASRT_BoostLeagueAssistant
                 AddRecord(recsByPlayer, rec);
             }
             return recsByPlayer;
-        }        
+        }
 
         public static Record[] RecordDictToList(Dictionary<ulong, Record> recDict) // list is sorted by the record positions
         {
@@ -125,7 +125,7 @@ namespace ASRT_BoostLeagueAssistant
 
         public static void UpdatePositions(Dictionary<ulong, Record> recDict, Comparison<Record> comp = null)
         {
-            List<Record> recList = new List<Record>(recDict.Values);
+            List<Record> recList = new(recDict.Values);
             UpdatePositions(recList, comp);
         }
 

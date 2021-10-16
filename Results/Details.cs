@@ -16,7 +16,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             {
                 recordComp = Record.ComparePoints;
             }
-            List<Dictionary<ulong, Record>> orderedResults = new List<Dictionary<ulong, Record>>();
+            List<Dictionary<ulong, Record>> orderedResults = new();
             foreach (Map map in mapOrder)
             {
                 if (mapToSteamIdToRecord.TryGetValue(map, out Dictionary<ulong, Record> mapResults))
@@ -45,7 +45,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             {
                 recordComp = Record.ComparePoints;
             }
-            List<List<Record>> orderedResults = new List<List<Record>>();
+            List<List<Record>> orderedResults = new();
             foreach (Map map in mapOrder)
             {
                 if (mapToSteamIdToRecord.TryGetValue(map, out var mapResults))
@@ -65,27 +65,43 @@ namespace ASRT_BoostLeagueAssistant.Results
         }
 
 
-        public static Table MakeDetailsTable(IEnumerable<Dictionary<ulong, Record>> results, int eventsPerRow = 1,
-            int nResults = -1, bool showHeadings = true, bool showMatchdays = false, bool showPositions = true, bool showPosDeltas = false, bool showPoints = true)
+        public static Table MakeDetailsTable(
+            IEnumerable<Dictionary<ulong, Record>> results,
+            int eventsPerRow = 1,
+            int nResults = -1,
+            bool showHeadings = true,
+            bool showMatchdays = false,
+            bool showPositions = true,
+            bool showPosDeltas = false,
+            bool showPoints = true,
+            bool showBonus = true)
         {
-            List<IEnumerable<Record>> resultsList = new List<IEnumerable<Record>>();
+            List<IEnumerable<Record>> resultsList = new();
             foreach (var result in results)
             {
                 resultsList.Add(Indexing.RecordDictToList(result));
             }
-            return MakeDetailsTable(resultsList, eventsPerRow, nResults, showHeadings, showMatchdays, showPositions, showPosDeltas, showPoints);
+            return MakeDetailsTable(resultsList, eventsPerRow, nResults, showHeadings, showMatchdays, showPositions, showPosDeltas, showPoints, showBonus);
         }
 
-        public static Table MakeDetailsTable(IEnumerable<IEnumerable<Record>> results, int eventsPerRow = 1,
-            int nResults = -1, bool showHeadings = true, bool showMatchdays = false, bool showPositions = true, bool showPosDeltas = false, bool showPoints = true)
+        public static Table MakeDetailsTable(
+            IEnumerable<IEnumerable<Record>> results,
+            int eventsPerRow = 1,
+            int nResults = -1,
+            bool showHeadings = true,
+            bool showMatchdays = false,
+            bool showPositions = true,
+            bool showPosDeltas = false,
+            bool showPoints = true,
+            bool showBonus = true)
         {
-            Table table = new Table();
+            Table table = new();
             int r = 0;
             int c = 0;
             int er = 0; // events on current row
             foreach (var eventResults in results)
             {
-                InsertEventDetails(r, c, eventResults, table, nResults, showHeadings, showMatchdays, showPositions, showPosDeltas, showPoints);
+                InsertEventDetails(table, r, c, eventResults, nResults, showHeadings, showMatchdays, showPositions, showPosDeltas, showPoints, showBonus);
                 er++;
                 if (er == eventsPerRow)
                 {
@@ -95,20 +111,28 @@ namespace ASRT_BoostLeagueAssistant.Results
                 }
                 else
                 {
-                    c += 4 + (showMatchdays ? 1 : 0) + (showPositions ? 1 : 0) + (showPosDeltas ? 1 : 0) + (showPoints ? 1 : 0);
+                    c += 4 + (showMatchdays ? 1 : 0) + (showPositions ? 1 : 0) + (showPosDeltas ? 1 : 0) + (showPoints ? 1 : 0) + (showBonus ? 1 : 0);
                 }
             }
             return table;
         }
 
-        public static void InsertEventDetails(int r, int c, IEnumerable<Record> eventResults, Table table, 
-            int nResults = -1, bool showHeadings = true, bool showMatchdays = false, bool showPositions = true, bool showPosDeltas = false, bool showPoints = true)
+        public static void InsertEventDetails(
+            Table table, int r, int c,
+            IEnumerable<Record> eventResults,
+            int nResults = -1,
+            bool showHeadings = true,
+            bool showMatchdays = false,
+            bool showPositions = true,
+            bool showPosDeltas = false,
+            bool showPoints = true,
+            bool showBonus = true)
         {
             if (!eventResults.Any())
             {
                 return;
             }
-            int nColumns = 3 + (showMatchdays ? 1 : 0) + (showPositions ? 1 : 0) + (showPosDeltas ? 1 : 0) + (showPoints ? 1 : 0);
+            int nColumns = 3 + (showMatchdays ? 1 : 0) + (showPositions ? 1 : 0) + (showPosDeltas ? 1 : 0) + (showPoints ? 1 : 0) + (showBonus ? 1 : 0);
 
             // Event info
             table[r, c++] = eventResults.First().Map.GetDescription();
@@ -138,12 +162,16 @@ namespace ASRT_BoostLeagueAssistant.Results
                 {
                     table[r, c++] = "Points";
                 }
+                if (showBonus)
+                {
+                    table[r, c++] = "Bonus";
+                }
                 c -= nColumns;
             }
 
             // Data
             int i = 0;
-            foreach(Record rec in eventResults)
+            foreach (Record rec in eventResults)
             {
                 if (nResults >= 0 && nResults < ++i)
                 {
@@ -172,6 +200,10 @@ namespace ASRT_BoostLeagueAssistant.Results
                 if (showPoints)
                 {
                     table[r, c++] = Record.TruncatedNumString(rec.Points.ToString(), 3);
+                }
+                if (showBonus)
+                {
+                    table[r, c++] = Record.TruncatedNumString(rec.Bonus.ToString(), 3);
                 }
                 c -= nColumns;
             }

@@ -9,7 +9,7 @@ namespace ASRT_BoostLeagueAssistant.Results
 
         public static Dictionary<ulong, PlayerSummary> SingleMatchdaySummary(IEnumerable<Dictionary<ulong, Record>> results)
         {
-            Dictionary<ulong, PlayerSummary> summary = new Dictionary<ulong, PlayerSummary>();
+            Dictionary<ulong, PlayerSummary> summary = new();
             int nEvents = results.Count();
             int i = 0;
             foreach (Dictionary<ulong, Record> eventResults in results)
@@ -65,7 +65,7 @@ namespace ASRT_BoostLeagueAssistant.Results
                 {
                     if (points > 0)
                     {
-                        playerSummary.points[10 - (int)points]++;
+                        //playerSummary.points[10 - (int)points]++;
                     }
                 }
                 playerSummary.totalPointsOld = playerSummary.totalPoints;
@@ -83,7 +83,7 @@ namespace ASRT_BoostLeagueAssistant.Results
 
         public static void CalculateRanks(Dictionary<ulong, PlayerSummary> summary)
         {
-            List<PlayerSummary> summaryList = new List<PlayerSummary>(summary.Values);
+            List<PlayerSummary> summaryList = new(summary.Values);
             summaryList.Sort(PlayerSummary.Compare);
             int nPlayers = summaryList.Count;
             for (int i = 0; i < nPlayers; i++)
@@ -94,7 +94,7 @@ namespace ASRT_BoostLeagueAssistant.Results
 
         public static void CalculateOldRanks(Dictionary<ulong, PlayerSummary> summary)
         {
-            List<PlayerSummary> summaryList = new List<PlayerSummary>(summary.Values);
+            List<PlayerSummary> summaryList = new(summary.Values);
             summaryList.Sort(PlayerSummary.CompareOld);
             int nPlayers = summaryList.Count;
             for (int i = 0; i < nPlayers; i++)
@@ -106,7 +106,7 @@ namespace ASRT_BoostLeagueAssistant.Results
         public static Table MakeSummaryTable(Dictionary<ulong, PlayerSummary> summary, string summaryName = "RESULTS",
             IEnumerable<string> headings = null, bool frequencyData = false, bool usePoints = true)
         {
-            Table table = new Table();
+            Table table = new();
             if (!summary.Any())
             {
                 return table;
@@ -214,7 +214,7 @@ namespace ASRT_BoostLeagueAssistant.Results
             {
                 r = playerSummary.rank;
                 c = 0;
-                string rank = 
+                string rank =
                 table[r, c++] = playerSummary.rank + "°";
                 if (hasOldRanks)
                 {
@@ -291,7 +291,7 @@ namespace ASRT_BoostLeagueAssistant.Results
 
         public static void ShowDeltas(Dictionary<ulong, PlayerSummary> summary, IEnumerable<ulong> steamIds, bool pointDelta = true, bool rankDelta = true)
         {
-            foreach(ulong id in steamIds)
+            foreach (ulong id in steamIds)
             {
                 if (summary.TryGetValue(id, out var playerSummary))
                 {

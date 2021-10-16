@@ -22,14 +22,14 @@
 
         public static int Compare(PlayerSummary x, PlayerSummary y)
         {
-            return x.totalPoints != y.totalPoints || x.nTracks == 0 ? 
-                y.totalPoints.CompareTo(x.totalPoints) : 
+            return x.totalPoints != y.totalPoints || x.nTracks == 0 ?
+                y.totalPoints.CompareTo(x.totalPoints) :
                 (y.totalPoints / y.nTracks).CompareTo(x.totalPoints / x.nTracks);
         }
 
         public static int CompareOld(PlayerSummary x, PlayerSummary y)
         {
-            return x.totalPointsOld != y.totalPointsOld || x.nTracks == 0?
+            return x.totalPointsOld != y.totalPointsOld || x.nTracks == 0 ?
                 y.totalPointsOld.CompareTo(x.totalPointsOld) :
                 (y.totalPointsOld / y.nTracks).CompareTo(x.totalPointsOld / x.nTracks);
         }

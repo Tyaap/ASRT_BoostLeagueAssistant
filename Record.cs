@@ -73,7 +73,7 @@ namespace ASRT_BoostLeagueAssistant
             {
                 return s;
             }
-            return s + tmp.Substring(point);
+            return s + tmp[point..];
         }
 
         public static string TruncatedNumString(string s, int dp)
